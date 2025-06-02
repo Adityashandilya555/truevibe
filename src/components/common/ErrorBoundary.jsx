@@ -26,7 +26,7 @@ class ErrorBoundary extends Component {
     // Log the error to an error reporting service
     console.error('ErrorBoundary caught an error', error, errorInfo);
     this.setState({ errorInfo });
-    
+
     // Here you could also log to an error reporting service like Sentry
     // if (typeof window.Sentry !== 'undefined') {
     //   window.Sentry.captureException(error);
