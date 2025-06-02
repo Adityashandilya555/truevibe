@@ -1,12 +1,14 @@
 {
-  "name": "TrueVibe",
+  "name": "TrueVibe - Emotion-Aware Social Media",
   "short_name": "TrueVibe",
-  "description": "Emotion-aware social media platform that prioritizes emotional intelligence",
+  "description": "Connect authentically through emotion-aware social interactions",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#6366f1",
-  "orientation": "portrait",
+  "background_color": "#1a202c",
+  "theme_color": "#3182ce",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -19,22 +21,49 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Profile",
-      "short_name": "Profile",
-      "description": "View your profile",
-      "url": "/profile",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Threads",
-      "short_name": "Threads",
-      "description": "View threads feed",
+      "src": "/icons/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["social", "lifestyle", "productivity"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "Create Thread",
+      "short_name": "New Thread",
+      "description": "Create a new emotion-aware thread",
       "url": "/threads",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Vibes",
+      "short_name": "Vibes",
+      "description": "Explore emotional landscape",
+      "url": "/vibes",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "form_factor": "narrow"
     }
   ]
 }

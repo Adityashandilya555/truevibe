@@ -2,15 +2,25 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../services/supabase';
 import useAuthStore from '../store/authStore';
+// Generate UUID for demo mode
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
 
 const useAuth = () => {
   const { user, session, setAuth, clearAuth } = useAuthStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TEMPORARY BYPASS - Set a mock user to skip authentication
+    // Create a proper UUID for demo user
+    const demoUserId = generateUUID();
+    
     const mockUser = {
-      id: 'mock-user-123',
+      id: demoUserId,
       email: 'demo@truevibe.com',
       user_metadata: {
         adjectives: ['Creative', 'Empathetic', 'Curious']
@@ -19,50 +29,15 @@ const useAuth = () => {
     
     const mockSession = {
       user: mockUser,
-      access_token: 'mock-token'
+      access_token: 'demo-token'
     };
 
-    // Set mock auth immediately
+    // Set demo auth immediately
     setAuth(mockUser, mockSession);
     setLoading(false);
 
-    // Comment out Supabase auth for now
-    /*
-    // Get initial session
-    const getSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        
-        if (session) {
-          setAuth(session.user, session);
-        } else {
-          clearAuth();
-        }
-      } catch (error) {
-        console.error('Error getting session:', error);
-        clearAuth();
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          setAuth(session.user, session);
-        } else {
-          clearAuth();
-        }
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-    */
+    // Store demo user in localStorage for consistency
+    localStorage.setItem('truevibe_demo_user', JSON.stringify(mockUser));
   }, [setAuth, clearAuth]);
 
   const signUp = async (email, password, adjectives) => {

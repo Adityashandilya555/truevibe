@@ -7,7 +7,14 @@ import { supabase } from '../../services/supabase';
 
 import useAuthStore from '../../store/authStore';
 import useAppStore from '../../store/appStore'; 
-import { v4 as uuidv4 } from 'uuid';
+// Generate UUID for demo mode
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
 import { optimizedTimeout } from '../../utils/performanceUtils';
 
 /**
@@ -254,10 +261,16 @@ const ThreadComposer = () => {
 
         setLastEmotion(result);
 
-        // Check for duplicate emotions in past 24h
+        // Check for duplicate emotions in past 24h (skip for demo mode)
         const checkDuplicateEmotion = async () => {
           try {
             if (!user) return;
+            
+            // Skip duplicate checking for demo users
+            if (user.id.includes('mock') || user.id.includes('demo') || user.email === 'demo@truevibe.com') {
+              setError(null);
+              return;
+            }
 
             const { data, error } = await supabase
               .from('threads')
@@ -393,21 +406,74 @@ const ThreadComposer = () => {
         mediaUrl = await uploadMedia();
       }
 
-      // Create thread in Supabase
-      const { data, error } = await supabase
-        .from('threads')
-        .insert({
+      // Create thread - handle demo mode and Supabase
+      let threadData;
+      
+      if (user.id.includes('mock') || user.id.includes('demo') || user.email === 'demo@truevibe.com') {
+        // Demo mode - create mock thread
+        threadData = {
+          id: generateUUID(),
           content,
           emotion: emotion.dominantEmotion,
           emotion_score: emotion.confidence,
           hashtags,
           user_id: user.id,
           media_url: mediaUrl,
-          media_type: mediaUrl ? mediaType : null
-        })
-        .select();
+          media_type: mediaUrl ? mediaType : null,
+          created_at: new Date().toISOString(),
+          reaction_counts: {
+            resonate: 0,
+            support: 0,
+            learn: 0,
+            challenge: 0,
+            amplify: 0
+          },
+          user_profiles: {
+            username: user.email.split('@')[0],
+            avatar_url: null,
+            adjective_one: user.user_metadata?.adjectives?.[0] || 'Creative',
+            adjective_two: user.user_metadata?.adjectives?.[1] || 'Empathetic',
+            adjective_three: user.user_metadata?.adjectives?.[2] || 'Curious'
+          }
+        };
+        
+        // Store in localStorage for demo
+        const demoThreads = JSON.parse(localStorage.getItem('truevibe_demo_threads') || '[]');
+        demoThreads.unshift(threadData);
+        localStorage.setItem('truevibe_demo_threads', JSON.stringify(demoThreads));
+        
+        // Update app store with demo thread
+        useAppStore.setState(state => ({
+          threads: [threadData, ...state.threads]
+        }));
+        
+      } else {
+        // Real Supabase mode
+        const { data, error } = await supabase
+          .from('threads')
+          .insert({
+            content,
+            emotion: emotion.dominantEmotion,
+            emotion_score: emotion.confidence,
+            hashtags,
+            user_id: user.id,
+            media_url: mediaUrl,
+            media_type: mediaUrl ? mediaType : null
+          })
+          .select(`
+            *,
+            user_profiles:user_id (
+              username,
+              avatar_url,
+              adjective_one,
+              adjective_two,
+              adjective_three
+            )
+          `);
 
-      if (error) throw error;
+        if (error) throw error;
+        threadData = data[0];
+      }
 
       // Clear content and reset states
       setContent('');
@@ -618,28 +684,48 @@ const ThreadComposer = () => {
       )}
 
       {/* Actions */}
-      <div className="flex space-x-2 mt-3">
-        <motion.button
-          onClick={handleCameraCapture}
-          className="p-3 min-h-[44px] min-w-[44px] bg-gray-100 dark:bg-gray-700 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          disabled={isSubmitting || isUploading}
-          aria-label="Take photo"
-        >
-          <Camera size={18} />
-        </motion.button>
+      <div className="flex justify-between items-center mt-3">
+        <div className="flex space-x-2">
+          <motion.button
+            onClick={handleCameraCapture}
+            className="p-3 min-h-[44px] min-w-[44px] bg-gray-100 dark:bg-gray-700 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            disabled={isSubmitting || isUploading}
+            aria-label="Take photo"
+          >
+            <Camera size={18} />
+          </motion.button>
 
-        <motion.button
-          onClick={handleBrowseFiles}
-          className="p-3 min-h-[44px] min-w-[44px] bg-gray-100 dark:bg-gray-700 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          disabled={isSubmitting || isUploading}
-          aria-label="Upload media"
-        >
-          <Image size={18} />
-        </motion.button>
+          <motion.button
+            onClick={handleBrowseFiles}
+            className="p-3 min-h-[44px] min-w-[44px] bg-gray-100 dark:bg-gray-700 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            disabled={isSubmitting || isUploading}
+            aria-label="Upload media"
+          >
+            <Image size={18} />
+          </motion.button>
+        </div>
+
+        {/* Clear/Reset button */}
+        {(content || mediaFile) && (
+          <motion.button
+            onClick={() => {
+              setContent('');
+              removeMedia();
+              setError(null);
+              adjustTextareaHeight();
+            }}
+            className="p-2 min-h-[40px] min-w-[40px] text-gray-500 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label="Clear content"
+          >
+            <X size={20} />
+          </motion.button>
+        )}
       </div>
 
       {/* Hashtag suggestions */}
