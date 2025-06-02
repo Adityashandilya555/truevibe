@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { ErrorBoundary } from './components/common/ErrorBoundary';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import TopBar from './components/navigation/TopBar';
 import BottomTabs from './components/navigation/BottomTabs';
 import LandingPage from './pages/LandingPage';
