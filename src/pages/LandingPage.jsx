@@ -11,6 +11,7 @@ import { ArrowRight, Heart, Users, MessageCircle, Smile, Shield, BarChart2 } fro
  */
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [showAuthFlow, setShowAuthFlow] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
 
   // Features list with icons and descriptions
@@ -73,6 +74,16 @@ const LandingPage = () => {
     active: { scale: 1, opacity: 1 }
   };
 
+  // Show auth flow if user clicks sign in/up
+  if (showAuthFlow) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-50">
+        {/* Assuming AuthFlow component exists and handles auth logic */}
+        <div>AuthFlow Component Here (Replace with actual AuthFlow Component)</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Hero Section */}
@@ -91,26 +102,26 @@ const LandingPage = () => {
               </span>
             </h1>
           </motion.div>
-          
+
           <motion.p 
             className="mt-6 max-w-2xl mx-auto text-xl text-gray-600 dark:text-gray-300"
             variants={itemVariants}
           >
             The emotion-aware social platform that prioritizes meaningful human connections over engagement algorithms.
           </motion.p>
-          
+
           <motion.div 
             className="mt-10 flex flex-col sm:flex-row gap-4 justify-center"
             variants={itemVariants}
           >
             <button
-              onClick={() => navigate('/signup')}
+              onClick={() => setShowAuthFlow(true)}
               className="px-8 py-3 text-base font-medium rounded-full text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 md:py-4 md:text-lg md:px-10 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
               Get Started
             </button>
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => setShowAuthFlow(true)}
               className="px-8 py-3 text-base font-medium rounded-full text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 md:py-4 md:text-lg md:px-10 transition-colors"
             >
               Sign In
@@ -167,14 +178,14 @@ const LandingPage = () => {
             <div className="mt-8 lg:mt-0 lg:ml-8">
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
-                  onClick={() => navigate('/signup')}
+                  onClick={() => setShowAuthFlow(true)}
                   className="px-6 py-3 text-base font-medium rounded-full text-purple-600 bg-white hover:bg-gray-100 md:py-4 md:text-lg md:px-8 transition-colors flex items-center justify-center"
                 >
                   Sign Up Now
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => navigate('/login')}
+                  onClick={() => setShowAuthFlow(true)}
                   className="px-6 py-3 text-base font-medium rounded-full text-white bg-purple-700 bg-opacity-30 hover:bg-opacity-40 md:py-4 md:text-lg md:px-8 transition-colors"
                 >
                   Learn More
