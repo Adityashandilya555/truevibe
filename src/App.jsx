@@ -1,5 +1,6 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import LoadingScreen from './components/common/LoadingScreen';
 import TopBar from './components/navigation/TopBar';
@@ -9,40 +10,38 @@ import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
 import ThreadsPage from './pages/ThreadsPage';
 import VibesPage from './pages/VibesPage';
-import useAuthStore from './store/authStore';
-import { useEffect } from 'react';
+import AuthFlow from './components/auth/AuthFlow';
+import useAuth from './hooks/useAuth';
 import './App.css';
 
 function AppContent() {
-  const { user, session, isLoading, checkAuth } = useAuthStore();
+  const { user, session, loading, isAuthenticated } = useAuth();
   const location = useLocation();
-  const [initialLoading, setInitialLoading] = useState(true);
 
-  useEffect(() => {
-    const initAuth = async () => {
-      await checkAuth();
-      setInitialLoading(false);
-    };
-    initAuth();
-  }, [checkAuth]);
-
-  // Show loading screen to prevent CLS during initial auth check
-  if (initialLoading || isLoading) {
+  // Show loading screen during authentication check
+  if (loading) {
     return <LoadingScreen message="Authenticating..." emotion="trust" />;
   }
 
-  // Check if user is authenticated (has both user and session)
-  if (!user || !session) {
+  // If not authenticated, show auth flow or landing page
+  if (!isAuthenticated) {
+    // Show AuthFlow for auth-specific routes
+    if (location.pathname === '/login' || location.pathname === '/signup') {
+      return <AuthFlow />;
+    }
+    
+    // Show landing page for other routes
     return (
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LandingPage />} />
-        <Route path="/signup" element={<LandingPage />} />
+        <Route path="/login" element={<AuthFlow />} />
+        <Route path="/signup" element={<AuthFlow />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
   }
 
+  // Authenticated user layout
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       {/* Fixed height header to prevent CLS */}
@@ -54,6 +53,8 @@ function AppContent() {
       <main className="flex-1 overflow-auto" style={{ height: 'calc(100vh - 8rem)' }}>
         <Routes>
           <Route path="/" element={<Navigate to="/threads" replace />} />
+          <Route path="/login" element={<Navigate to="/threads" replace />} />
+          <Route path="/signup" element={<Navigate to="/threads" replace />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/threads" element={<ThreadsPage />} />
           <Route path="/vibes" element={<VibesPage />} />

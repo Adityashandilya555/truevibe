@@ -1,109 +1,109 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../services/supabase';
-import useAuth from '../../hooks/useAuth';
 
-const REACTIONS = [
-  { type: 'resonate', emoji: '🤝', label: 'Resonate', description: 'I feel the same way' },
-  { type: 'support', emoji: '👍', label: 'Support', description: 'I\'m here for you' },
-  { type: 'learn', emoji: '🧠', label: 'Learn', description: 'Help me understand' },
-  { type: 'challenge', emoji: '⚡', label: 'Challenge', description: 'I respectfully disagree' },
-  { type: 'amplify', emoji: '📢', label: 'Amplify', description: 'This needs to be heard' }
-];
-
-const ReactionSystem = ({ threadId, initialReactions = {} }) => {
-  const { user } = useAuth();
-  const [reactions, setReactions] = useState(initialReactions);
+const ReactionSystem = ({ threadId, reactions = [], currentUserId }) => {
+  const [reactionCounts, setReactionCounts] = useState({
+    resonate: 0,
+    support: 0,
+    learn: 0,
+    challenge: 0,
+    amplify: 0
+  });
   const [userReaction, setUserReaction] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const reactionTypes = [
+    { key: 'resonate', emoji: '🤝', label: 'Resonate', color: '#FFD700' },
+    { key: 'support', emoji: '👍', label: 'Support', color: '#4169E1' },
+    { key: 'learn', emoji: '🧠', label: 'Learn', color: '#9400D3' },
+    { key: 'challenge', emoji: '⚡', label: 'Challenge', color: '#FF8C00' },
+    { key: 'amplify', emoji: '📢', label: 'Amplify', color: '#FF0000' }
+  ];
+
   useEffect(() => {
-    if (user && threadId) {
-      fetchUserReaction();
-      subscribeToReactions();
-    }
-  }, [user, threadId]);
+    calculateReactionCounts();
+  }, [reactions]);
 
-  const fetchUserReaction = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('reactions')
-        .select('type')
-        .eq('thread_id', threadId)
-        .eq('user_id', user.id)
-        .single();
+  const calculateReactionCounts = () => {
+    const counts = {
+      resonate: 0,
+      support: 0,
+      learn: 0,
+      challenge: 0,
+      amplify: 0
+    };
 
-      if (data && !error) {
-        setUserReaction(data.type);
+    let currentUserReaction = null;
+
+    reactions.forEach(reaction => {
+      if (counts.hasOwnProperty(reaction.type)) {
+        counts[reaction.type]++;
       }
-    } catch (error) {
-      console.error('Error fetching user reaction:', error);
-    }
-  };
-
-  const subscribeToReactions = () => {
-    const subscription = supabase
-      .channel(`reactions:${threadId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'reactions',
-        filter: `thread_id=eq.${threadId}`
-      }, (payload) => {
-        fetchReactionCounts();
-      })
-      .subscribe();
-
-    return () => subscription.unsubscribe();
-  };
-
-  const fetchReactionCounts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('reactions')
-        .select('type')
-        .eq('thread_id', threadId);
-
-      if (data && !error) {
-        const counts = {};
-        data.forEach(reaction => {
-          counts[reaction.type] = (counts[reaction.type] || 0) + 1;
-        });
-        setReactions(counts);
+      
+      if (reaction.user_id === currentUserId) {
+        currentUserReaction = reaction.type;
       }
-    } catch (error) {
-      console.error('Error fetching reaction counts:', error);
-    }
+    });
+
+    setReactionCounts(counts);
+    setUserReaction(currentUserReaction);
   };
 
   const handleReaction = async (reactionType) => {
-    if (!user || isLoading) return;
+    if (isLoading || !currentUserId) return;
 
     setIsLoading(true);
+
     try {
+      // If user already has this reaction, remove it
       if (userReaction === reactionType) {
-        // Remove reaction
-        await supabase
+        const { error } = await supabase
           .from('reactions')
           .delete()
           .eq('thread_id', threadId)
-          .eq('user_id', user.id);
+          .eq('user_id', currentUserId);
+
+        if (error) throw error;
 
         setUserReaction(null);
+        setReactionCounts(prev => ({
+          ...prev,
+          [reactionType]: Math.max(0, prev[reactionType] - 1)
+        }));
       } else {
-        // Add or update reaction
-        await supabase
+        // Remove existing reaction if any
+        if (userReaction) {
+          await supabase
+            .from('reactions')
+            .delete()
+            .eq('thread_id', threadId)
+            .eq('user_id', currentUserId);
+
+          setReactionCounts(prev => ({
+            ...prev,
+            [userReaction]: Math.max(0, prev[userReaction] - 1)
+          }));
+        }
+
+        // Add new reaction
+        const { error } = await supabase
           .from('reactions')
-          .upsert({
+          .insert({
             thread_id: threadId,
-            user_id: user.id,
+            user_id: currentUserId,
             type: reactionType
           });
 
-        setUserReaction(reactionType);
-      }
+        if (error) throw error;
 
-      fetchReactionCounts();
+        setUserReaction(reactionType);
+        setReactionCounts(prev => ({
+          ...prev,
+          [reactionType]: prev[reactionType] + 1
+        }));
+      }
     } catch (error) {
       console.error('Error handling reaction:', error);
     } finally {
@@ -112,37 +112,31 @@ const ReactionSystem = ({ threadId, initialReactions = {} }) => {
   };
 
   return (
-    <div className="flex flex-wrap gap-2 mt-3">
-      {REACTIONS.map((reaction) => {
-        const count = reactions[reaction.type] || 0;
-        const isActive = userReaction === reaction.type;
-
-        return (
+    <div className="flex items-center justify-between pt-3 border-t border-gray-700">
+      <div className="flex items-center space-x-4">
+        {reactionTypes.map((reaction) => (
           <motion.button
-            key={reaction.type}
-            onClick={() => handleReaction(reaction.type)}
+            key={reaction.key}
+            onClick={() => handleReaction(reaction.key)}
             disabled={isLoading}
-            className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-sm transition-all ${
-              isActive 
-                ? 'bg-cyan-500 text-white' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            className={`flex items-center space-x-1 px-3 py-2 rounded-full text-sm transition-all ${
+              userReaction === reaction.key
+                ? 'bg-gray-600 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
             }`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            title={reaction.description}
           >
-            <span>{reaction.emoji}</span>
-            <span>{reaction.label}</span>
-            {count > 0 && (
-              <span className={`ml-1 px-1.5 py-0.5 rounded-full text-xs ${
-                isActive ? 'bg-cyan-600' : 'bg-gray-200 dark:bg-gray-600'
-              }`}>
-                {count}
+            <span className="text-base">{reaction.emoji}</span>
+            <span className="hidden sm:inline">{reaction.label}</span>
+            {reactionCounts[reaction.key] > 0 && (
+              <span className="text-xs bg-gray-800 px-2 py-1 rounded-full">
+                {reactionCounts[reaction.key]}
               </span>
             )}
           </motion.button>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 };

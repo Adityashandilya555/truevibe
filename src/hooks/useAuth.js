@@ -1,117 +1,120 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+
+import { useEffect, useState } from 'react';
+import { supabase } from '../services/supabase';
 import useAuthStore from '../store/authStore';
 
-/**
- * Custom hook for authentication functionality
- * Wraps authStore and provides simplified authentication state and methods
- * 
- * @returns {Object} Authentication state and methods
- */
 const useAuth = () => {
-  const navigate = useNavigate();
+  const { user, session, setAuth, clearAuth } = useAuthStore();
+  const [loading, setLoading] = useState(true);
 
-  // Select state from authStore
-  const user = useAuthStore(state => state.user);
-  const profile = useAuthStore(state => state.profile);
-  const session = useAuthStore(state => state.session);
-  const isLoading = useAuthStore(state => state.isLoading);
-  const isLoadingProfile = useAuthStore(state => state.isLoadingProfile);
-  const error = useAuthStore(state => state.error);
-  const selectedAdjectives = useAuthStore(state => state.selectedAdjectives);
-
-  // Select actions from authStore
-  const signUp = useAuthStore(state => state.signUp);
-  const signIn = useAuthStore(state => state.signIn);
-  const signOut = useAuthStore(state => state.signOut);
-  const checkAuth = useAuthStore(state => state.checkAuth);
-  const fetchUserProfile = useAuthStore(state => state.fetchUserProfile);
-  const updateProfile = useAuthStore(state => state.updateProfile);
-  const uploadAvatar = useAuthStore(state => state.uploadAvatar);
-  const setAdjective = useAuthStore(state => state.setAdjective);
-  const resetAdjectives = useAuthStore(state => state.resetAdjectives);
-  const clearError = useAuthStore(state => state.clearError);
-
-  // Initialize auth on mount
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    // Get initial session
+    const getSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        if (session) {
+          setAuth(session.user, session);
+        } else {
+          clearAuth();
+        }
+      } catch (error) {
+        console.error('Error getting session:', error);
+        clearAuth();
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  /**
-   * Login with email and password
-   * @param {string} email - User email
-   * @param {string} password - User password
-   * @param {string} redirectPath - Path to redirect to after login
-   */
-  const login = async (email, password, redirectPath = '/threads') => {
+    getSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          setAuth(session.user, session);
+        } else {
+          clearAuth();
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [setAuth, clearAuth]);
+
+  const signUp = async (email, password, adjectives) => {
     try {
-      await signIn(email, password);
-      navigate(redirectPath);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            adjectives: adjectives
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      // Create user profile
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: data.user.id,
+            email: data.user.email,
+            name: email.split('@')[0],
+            adjective_one: adjectives[0],
+            adjective_two: adjectives[1],
+            adjective_three: adjectives[2]
+          });
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError);
+        }
+      }
+
+      return { data, error: null };
     } catch (error) {
-      console.error('Login failed:', error);
+      return { data: null, error };
     }
   };
 
-  /**
-   * Register new user
-   * @param {string} email - User email
-   * @param {string} password - User password
-   * @param {string} name - User name
-   * @param {Object} adjectives - Selected adjectives
-   */
-  const register = async (email, password, name, adjectives) => {
+  const signIn = async (email, password) => {
     try {
-      await signUp(email, password, name, adjectives);
-      navigate('/threads');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+      return { data, error: null };
     } catch (error) {
-      console.error('Registration failed:', error);
+      return { data: null, error };
     }
   };
 
-  /**
-   * Logout current user
-   */
-  const logout = async () => {
+  const signOut = async () => {
     try {
-      await signOut();
-      navigate('/');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      clearAuth();
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('Error signing out:', error);
     }
   };
-
-  /**
-   * Check if user is authenticated
-   */
-  const isAuthenticated = !!user && !!session;
 
   return {
-    // State
     user,
-    profile,
     session,
-    isLoading,
-    isLoadingProfile,
-    error,
-    selectedAdjectives,
-    isAuthenticated,
-
-    // Actions
-    login,
-    register,
-    logout,
-    signIn,
+    loading,
     signUp,
+    signIn,
     signOut,
-    checkAuth,
-    fetchUserProfile,
-    updateProfile,
-    uploadAvatar,
-    setAdjective,
-    resetAdjectives,
-    clearError
+    isAuthenticated: !!user && !!session
   };
 };
 
-export { useAuth as default };
 export default useAuth;
