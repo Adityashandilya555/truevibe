@@ -1,6 +1,7 @@
+
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { supabase, handleAuthError, profileUtils, sessionUtils } from '../services/supabase';
+import { supabase } from '../services/supabase';
 
 /**
  * User authentication and profile store using Zustand
@@ -12,42 +13,29 @@ import { supabase, handleAuthError, profileUtils, sessionUtils } from '../servic
 const useAuthStore = create(
   persist(
     (set, get) => ({
-      // User state
+      // State
       user: null,
       profile: null,
       session: null,
-
-      // Loading states
       isLoading: false,
       isLoadingProfile: false,
-
-      // Error states
       error: null,
-
-      // Adjective selection for signup
       selectedAdjectives: {
         one: '',
         two: '',
         three: ''
       },
 
-      /**
-       * Set the selected adjectives for user profile
-       * @param {string} position - Which adjective to update (one, two, three)
-       * @param {string} value - The adjective value
-       */
-      setAdjective: (position, value) => {
-        set(state => ({
+      // Actions
+      setAdjective: (position, adjective) => {
+        set((state) => ({
           selectedAdjectives: {
             ...state.selectedAdjectives,
-            [position]: value
+            [position]: adjective
           }
         }));
       },
 
-      /**
-       * Reset all selected adjectives
-       */
       resetAdjectives: () => {
         set({
           selectedAdjectives: {
@@ -58,190 +46,51 @@ const useAuthStore = create(
         });
       },
 
-      /**
-       * Initialize auth state from Supabase session
-       */
-      initializeAuth: async () => {
+      clearError: () => {
+        set({ error: null });
+      },
+
+      // Sign up new user
+      signUp: async (email, password, name = '', adjectives = null) => {
         set({ isLoading: true, error: null });
-
-        try {
-          // Get current session
-          const session = await sessionUtils.getCurrentSession();
-
-          if (session) {
-            const user = session.user;
-            set({ user, session });
-
-            // Fetch user profile
-            await get().fetchUserProfile(user.id);
-          }
-        } catch (error) {
-          console.error('Error initializing auth:', error);
-          set({ error: handleAuthError(error) });
-        } finally {
-          set({ isLoading: false });
-        }
-      },
-
-      /**
-       * Fetch user profile by ID
-       * @param {string} userId - User ID to fetch profile for
-       */
-      fetchUserProfile: async (userId) => {
-        set({ isLoadingProfile: true });
-
-        try {
-          const { data, error } = await profileUtils.getProfileById(userId);
-
-          if (error) throw error;
-
-          if (data) {
-            set({ profile: data });
-          } else {
-            // If no profile exists but user is authenticated, create one
-            const user = get().user;
-            if (user) {
-              await get().createUserProfile(user.id, user.email);
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching profile:', error);
-          set({ error: handleAuthError(error) });
-        } finally {
-          set({ isLoadingProfile: false });
-        }
-      },
-
-      /**
-       * Create a new user profile
-       * @param {string} userId - User ID
-       * @param {string} email - User email
-       */
-      createUserProfile: async (userId, email) => {
-        const { selectedAdjectives } = get();
-
-        // Extract username from email (before the @)
-        const username = email.split('@')[0];
-
-        const newProfile = {
-          id: userId,
-          username,
-          avatar_url: null,
-          adjective_one: selectedAdjectives.one || 'Creative',
-          adjective_two: selectedAdjectives.two || 'Thoughtful',
-          adjective_three: selectedAdjectives.three || 'Curious'
-        };
-
-        try {
-          const { data, error } = await profileUtils.createProfile(newProfile);
-
-          if (error) throw error;
-
-          set({ profile: data });
-          get().resetAdjectives();
-        } catch (error) {
-          console.error('Error creating profile:', error);
-          set({ error: handleAuthError(error) });
-        }
-      },
-
-      /**
-       * Update user profile
-       * @param {Object} updates - Profile fields to update
-       */
-      updateProfile: async (updates) => {
-        const { user } = get();
-        if (!user) return;
-
-        set({ isLoadingProfile: true });
-
-        try {
-          const { data, error } = await profileUtils.updateProfile(user.id, updates);
-
-          if (error) throw error;
-
-          set({ profile: data });
-        } catch (error) {
-          console.error('Error updating profile:', error);
-          set({ error: handleAuthError(error) });
-        } finally {
-          set({ isLoadingProfile: false });
-        }
-      },
-
-      /**
-       * Upload user avatar
-       * @param {File} file - Image file to upload
-       */
-      uploadAvatar: async (file) => {
-        const { user } = get();
-        if (!user) return;
-
-        set({ isLoadingProfile: true });
-
-        try {
-          const { data, error } = await profileUtils.uploadAvatar(user.id, file);
-
-          if (error) throw error;
-
-          // Update profile with new avatar URL
-          await get().updateProfile({
-            avatar_url: data.publicUrl
-          });
-        } catch (error) {
-          console.error('Error uploading avatar:', error);
-          set({ error: handleAuthError(error) });
-        } finally {
-          set({ isLoadingProfile: false });
-        }
-      },
-
-      /**
-       * Sign up with email and password
-       * @param {string} email - User email
-       * @param {string} password - User password
-       */
-      signUp: async (email, password) => {
-        set({ isLoading: true, error: null });
-
+        
         try {
           const { data, error } = await supabase.auth.signUp({
             email,
-            password
+            password,
+            options: {
+              data: {
+                name: name || email.split('@')[0],
+                adjectives: adjectives || get().selectedAdjectives
+              }
+            }
           });
 
           if (error) throw error;
 
-          // If auto-confirmation is enabled
-          if (data?.user && data?.session) {
+          if (data.user) {
             set({
               user: data.user,
-              session: data.session
+              session: data.session,
+              isLoading: false
             });
-
-            // Create user profile with selected adjectives
-            await get().createUserProfile(data.user.id, email);
-          } else {
-            // If email confirmation is required
-            set({
-              user: null,
-              session: null,
-              message: 'Please check your email for confirmation link'
-            });
+            
+            // Create user profile
+            await get().createUserProfile(data.user, name, adjectives || get().selectedAdjectives);
           }
+
+          return { data, error: null };
         } catch (error) {
           console.error('Signup error:', error);
-          set({ error: handleAuthError(error) });
-        } finally {
-          set({ isLoading: false });
+          set({
+            error: error.message,
+            isLoading: false
+          });
+          return { data: null, error };
         }
       },
 
-      /**
-       * Sign in with email and password
-       * @param {string} email - User email
-       * @param {string} password - User password
-       */
+      // Sign in existing user
       signIn: async (email, password) => {
         set({ isLoading: true, error: null });
 
@@ -255,70 +104,259 @@ const useAuthStore = create(
 
           set({
             user: data.user,
-            session: data.session
+            session: data.session,
+            isLoading: false
           });
 
-          // Fetch or create user profile
-          await get().fetchUserProfile(data.user.id);
+          // Fetch user profile
+          if (data.user) {
+            await get().fetchUserProfile(data.user.id);
+          }
+
+          return { data, error: null };
         } catch (error) {
-          console.error('Login error:', error);
-          set({ error: handleAuthError(error) });
-        } finally {
-          set({ isLoading: false });
+          console.error('Signin error:', error);
+          set({
+            error: error.message,
+            isLoading: false
+          });
+          return { data: null, error };
         }
       },
 
-      /**
-       * Sign out current user
-       */
+      // Sign out user
       signOut: async () => {
         set({ isLoading: true, error: null });
 
         try {
           const { error } = await supabase.auth.signOut();
-
+          
           if (error) throw error;
 
           set({
             user: null,
+            profile: null,
             session: null,
-            profile: null
+            isLoading: false,
+            selectedAdjectives: {
+              one: '',
+              two: '',
+              three: ''
+            }
           });
+
+          return { error: null };
         } catch (error) {
-          console.error('Logout error:', error);
-          set({ error: handleAuthError(error) });
-        } finally {
-          set({ isLoading: false });
+          console.error('Signout error:', error);
+          set({
+            error: error.message,
+            isLoading: false
+          });
+          return { error };
         }
       },
 
-      /**
-       * Clear any error messages
-       */
-      clearError: () => {
-        set({ error: null });
+      // Check authentication status
+      checkAuth: async () => {
+        set({ isLoading: true });
+
+        try {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) throw error;
+
+          if (session?.user) {
+            set({
+              user: session.user,
+              session: session,
+              isLoading: false
+            });
+            
+            // Fetch user profile
+            await get().fetchUserProfile(session.user.id);
+          } else {
+            set({
+              user: null,
+              profile: null,
+              session: null,
+              isLoading: false
+            });
+          }
+        } catch (error) {
+          console.error('Auth check error:', error);
+          set({
+            user: null,
+            profile: null,
+            session: null,
+            isLoading: false,
+            error: error.message
+          });
+        }
       },
 
-  checkAuth: async () => {
-    try {
-      set({ loading: true, error: null });
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) throw error;
-      set({ user, loading: false });
-      return user;
-    } catch (error) {
-      console.error('Auth check error:', error);
-      set({ error: error.message, loading: false, user: null });
-      return null;
-    }
-  },
+      // Create user profile
+      createUserProfile: async (user, name, adjectives) => {
+        try {
+          const profileData = {
+            id: user.id,
+            email: user.email,
+            name: name || user.email.split('@')[0],
+            adjective_one: adjectives?.one || '',
+            adjective_two: adjectives?.two || '',
+            adjective_three: adjectives?.three || '',
+            avatar_url: null,
+            created_at: new Date().toISOString()
+          };
+
+          const { data, error } = await supabase
+            .from('user_profiles')
+            .insert([profileData])
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          set({ profile: data });
+          return { data, error: null };
+        } catch (error) {
+          console.error('Create profile error:', error);
+          set({ error: error.message });
+          return { data: null, error };
+        }
+      },
+
+      // Fetch user profile
+      fetchUserProfile: async (userId) => {
+        set({ isLoadingProfile: true });
+
+        try {
+          const { data, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+          if (error && error.code !== 'PGRST116') throw error;
+
+          set({
+            profile: data,
+            isLoadingProfile: false
+          });
+
+          return { data, error: null };
+        } catch (error) {
+          console.error('Fetch profile error:', error);
+          set({
+            profile: null,
+            isLoadingProfile: false,
+            error: error.message
+          });
+          return { data: null, error };
+        }
+      },
+
+      // Update user profile
+      updateProfile: async (updates) => {
+        set({ isLoadingProfile: true });
+        const { user } = get();
+
+        if (!user) {
+          set({ isLoadingProfile: false, error: 'No user logged in' });
+          return { data: null, error: new Error('No user logged in') };
+        }
+
+        try {
+          const { data, error } = await supabase
+            .from('user_profiles')
+            .update(updates)
+            .eq('id', user.id)
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          set({
+            profile: data,
+            isLoadingProfile: false
+          });
+
+          return { data, error: null };
+        } catch (error) {
+          console.error('Update profile error:', error);
+          set({
+            isLoadingProfile: false,
+            error: error.message
+          });
+          return { data: null, error };
+        }
+      },
+
+      // Upload avatar
+      uploadAvatar: async (file) => {
+        const { user } = get();
+        
+        if (!user) {
+          set({ error: 'No user logged in' });
+          return { data: null, error: new Error('No user logged in') };
+        }
+
+        try {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+          const filePath = `avatars/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, file);
+
+          if (uploadError) throw uploadError;
+
+          const { data } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+          // Update profile with new avatar URL
+          await get().updateProfile({ avatar_url: data.publicUrl });
+
+          return { data: data.publicUrl, error: null };
+        } catch (error) {
+          console.error('Upload avatar error:', error);
+          set({ error: error.message });
+          return { data: null, error };
+        }
+      }
     }),
     {
-      name: 'truevibe-auth-storage',
-      storage: createJSONStorage(() => localStorage)
+      name: 'truevibe-auth',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        user: state.user,
+        profile: state.profile,
+        session: state.session,
+        selectedAdjectives: state.selectedAdjectives
+      })
     }
   )
 );
 
+// Set up auth state change listener
+supabase.auth.onAuthStateChange((event, session) => {
+  const { checkAuth } = useAuthStore.getState();
+  
+  if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+    checkAuth();
+  } else if (event === 'SIGNED_OUT') {
+    useAuthStore.setState({
+      user: null,
+      profile: null,
+      session: null,
+      selectedAdjectives: {
+        one: '',
+        two: '',
+        three: ''
+      }
+    });
+  }
+});
+
 export default useAuthStore;
-export { useAuthStore };

@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Heart, Users, MessageCircle, Smile, Shield, BarChart2 } from 'lucide-react';
+import AuthFlow from '../components/auth/AuthFlow';
 
 /**
  * LandingPage Component
@@ -77,9 +79,18 @@ const LandingPage = () => {
   // Show auth flow if user clicks sign in/up
   if (showAuthFlow) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-50">
-        {/* Assuming AuthFlow component exists and handles auth logic */}
-        <div>AuthFlow Component Here (Replace with actual AuthFlow Component)</div>
+      <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-50 dark:bg-gray-900">
+        <div className="w-full max-w-md">
+          <div className="mb-6 text-center">
+            <button
+              onClick={() => setShowAuthFlow(false)}
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4 inline-flex items-center"
+            >
+              ← Back to landing page
+            </button>
+          </div>
+          <AuthFlow />
+        </div>
       </div>
     );
   }
