@@ -144,3 +144,53 @@ export default useEmotion;
  * @property {Object} scores - Raw sentiment scores
  * @property {Object} emotionScores - Scores for each emotion
  */
+import { useState, useCallback } from 'react';
+
+const useEmotion = () => {
+  const [currentEmotion, setCurrentEmotion] = useState(null);
+  const [confidence, setConfidence] = useState(0);
+
+  const analyzeEmotion = useCallback((text) => {
+    // Simple emotion analysis - this would be replaced with actual VADER analysis
+    const emotions = {
+      joy: ['happy', 'excited', 'amazing', 'wonderful', 'great', 'love'],
+      sadness: ['sad', 'disappointed', 'down', 'upset', 'hurt'],
+      anger: ['angry', 'mad', 'furious', 'hate', 'annoyed'],
+      fear: ['scared', 'afraid', 'worried', 'anxious', 'nervous'],
+      surprise: ['wow', 'amazing', 'incredible', 'unexpected'],
+      trust: ['trust', 'believe', 'confident', 'reliable'],
+      anticipation: ['excited', 'looking forward', 'can\'t wait', 'hopeful'],
+      disgust: ['disgusting', 'awful', 'terrible', 'gross']
+    };
+
+    const words = text.toLowerCase().split(' ');
+    let detectedEmotion = 'neutral';
+    let maxMatches = 0;
+
+    for (const [emotion, keywords] of Object.entries(emotions)) {
+      const matches = keywords.filter(keyword => 
+        words.some(word => word.includes(keyword))
+      ).length;
+      
+      if (matches > maxMatches) {
+        maxMatches = matches;
+        detectedEmotion = emotion;
+      }
+    }
+
+    const calculatedConfidence = Math.min(0.9, 0.3 + (maxMatches * 0.2));
+    
+    setCurrentEmotion(detectedEmotion);
+    setConfidence(calculatedConfidence);
+
+    return { emotion: detectedEmotion, confidence: calculatedConfidence };
+  }, []);
+
+  return {
+    currentEmotion,
+    confidence,
+    analyzeEmotion
+  };
+};
+
+export default useEmotion;

@@ -149,11 +149,17 @@ const ThreadsPage = () => {
             {/* Reactions */}
             <ReactionSystem 
               threadId={thread.id}
-              reactions={thread.reactions}
+              reactions={thread.reactions || {}}
               onReaction={(type) => {
                 setThreads(threads.map(t => 
                   t.id === thread.id 
-                    ? { ...t, reactions: { ...t.reactions, [type]: t.reactions[type] + 1 } }
+                    ? { 
+                        ...t, 
+                        reactions: { 
+                          ...t.reactions, 
+                          [type]: (t.reactions?.[type] || 0) + 1 
+                        } 
+                      }
                     : t
                 ));
               }}

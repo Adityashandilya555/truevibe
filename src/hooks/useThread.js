@@ -375,3 +375,62 @@ export default useThread;
  * @property {string|null} hashtag - Filter by hashtag
  * @property {string|null} userId - Filter by user ID
  */
+import { useState, useEffect } from 'react';
+
+const useThread = () => {
+  const [threads, setThreads] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const createThread = async (threadData) => {
+    setLoading(true);
+    try {
+      // Mock thread creation
+      const newThread = {
+        id: Date.now(),
+        ...threadData,
+        createdAt: new Date().toISOString(),
+        reactions: {
+          resonate: 0,
+          support: 0,
+          learn: 0,
+          challenge: 0,
+          amplify: 0
+        }
+      };
+      
+      setThreads(prev => [newThread, ...prev]);
+      return { success: true, thread: newThread };
+    } catch (error) {
+      console.error('Error creating thread:', error);
+      return { success: false, error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateThread = async (threadId, updates) => {
+    try {
+      setThreads(prev => 
+        prev.map(thread => 
+          thread.id === threadId 
+            ? { ...thread, ...updates }
+            : thread
+        )
+      );
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating thread:', error);
+      return { success: false, error };
+    }
+  };
+
+  return {
+    threads,
+    loading,
+    createThread,
+    updateThread,
+    setThreads
+  };
+};
+
+export default useThread;

@@ -387,3 +387,54 @@ export default useProfile;
  * @property {Object} user - User profile data
  * @property {string} createdAt - Creation timestamp
  */
+import { useState, useEffect } from 'react';
+
+const useProfile = () => {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const updateProfile = async (updates) => {
+    setLoading(true);
+    try {
+      // Mock profile update
+      setProfile(prev => ({ ...prev, ...updates }));
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return { success: false, error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadProfile = async (userId) => {
+    setLoading(true);
+    try {
+      // Mock profile loading
+      const mockProfile = {
+        id: userId,
+        name: 'Demo User',
+        email: 'demo@truevibe.com',
+        adjectives: ['Creative', 'Empathetic', 'Curious'],
+        bio: 'Exploring emotions through technology'
+      };
+      
+      setProfile(mockProfile);
+      return { success: true, profile: mockProfile };
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      return { success: false, error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    profile,
+    loading,
+    updateProfile,
+    loadProfile
+  };
+};
+
+export default useProfile;
