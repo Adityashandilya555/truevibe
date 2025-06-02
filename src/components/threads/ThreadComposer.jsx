@@ -652,7 +652,7 @@ const ThreadComposer = () => {
           {hashtagSuggestions.map((tag, index) => (
             <motion.button
               key={tag}
-              onClick={() => addHashtag(tag)}
+              onClick={()={() => addHashtag(tag)}
               className="px-3 py-2 sm:px-2 sm:py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors min-h-[40px] sm:min-h-0 flex items-center justify-center"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
