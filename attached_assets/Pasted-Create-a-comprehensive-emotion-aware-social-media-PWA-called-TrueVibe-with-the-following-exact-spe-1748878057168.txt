@@ -1,0 +1,180 @@
+Create a comprehensive emotion-aware social media PWA called "TrueVibe" with the following exact specifications:
+
+## CORE CONCEPT
+TrueVibe is a privacy-first, emotion-aware social media platform that detects user emotions in real-time during content creation and provides meaningful social interactions through a five-reaction system and personality-based profiles.
+
+## UI/UX DESIGN REQUIREMENTS
+
+### Visual Design System
+- Modern dark theme with charcoal/black backgrounds (#1a1a1a, #2d2d2d)
+- Accent color: Cyan/teal (#4dd0e1) for buttons, highlights, and branding
+- Typography: Clean, modern sans-serif fonts
+- Card-based layout with subtle borders and shadows
+- Smooth animations and transitions throughout
+- Mobile-first responsive design
+
+### Navigation Structure
+Bottom navigation bar with three main tabs:
+1. **Profile Tab** (user icon) - User profiles and stories
+2. **Threads Tab** (message icon) - Main social feed 
+3. **Vibes Tab** (sparkle icon) - Daily emotion sharing
+
+Top header with:
+- Hamburger menu (left)
+- "TrueVibe" branding (center)
+- User avatar dropdown (right) with Settings, Sign In, Documentation
+
+## DETAILED PAGE SPECIFICATIONS
+
+### 1. PROFILE PAGE (/profile)
+**Header Section:**
+- Large circular avatar with cyan border
+- Username below avatar
+- Three personality adjectives as cyan-colored pills (e.g., "Creative", "Empathetic", "Curious")
+
+**Your Stories Section:**
+- "Your Stories" heading with "+ Add Story" button (cyan)
+- Horizontal row of circular story bubbles
+- First bubble shows user's latest story with small icon overlay
+- Second bubble is dotted circle with "+" for adding new story
+- Timestamp "3h ago" below story bubbles
+
+**Friends Stories Section:**
+- "Friends Stories" heading
+- Row of circular friend story bubbles with profile pictures
+- Each story has subtle cyan border if unviewed
+
+### 2. THREADS PAGE (/threads) - Main Feed
+**Thread Composer:**
+- "Trending" and "Following" toggle tabs at top
+- Text area with placeholder: "Share your thoughts... (emotion will be detected automatically)"
+- Real-time emotion display: "Emotion: [detected emotion]" 
+- Character counter and "Post" button (cyan)
+
+**Thread Display:**
+- User avatar (left)
+- Username and timestamp
+- Thread content with automatic hashtag highlighting in cyan
+- Emotion detection badge (e.g., "Joy 85% confidence") with yellow/gold background
+- Five-reaction buttons in horizontal row:
+  - 🤝 Resonate [count]
+  - 👍 Support [count] 
+  - 🧠 Learn [count]
+  - ⚡ Challenge [count]
+  - 📢 Amplify [count]
+- Left border colored based on detected emotion (gold for joy, blue for trust, etc.)
+
+### 3. VIBES PAGE (/vibes) - Daily Emotion Sharing
+**Header:**
+- "Daily Vibe" title
+- Subtitle: "Share your moment - text, image, or audio"
+
+**Vibe Composer:**
+- Three mode buttons: "📝 Text", "📷 Photo", "🎵 Audio"
+- Large text area: "What's your vibe today?"
+- Privacy toggle: Radio buttons for "Public" vs "Private (Friends Only)"
+- Large cyan "Share Vibe" button
+
+**Today's Vibes Section:**
+- "Today's Vibes" heading
+- Grid of vibe cards showing:
+  - "You" - user's vibe with timestamp
+  - Friend vibes with usernames and timestamps
+  - Brief vibe content preview
+
+## CORE FEATURES TO IMPLEMENT
+
+### 1. Real-Time Emotion Detection
+- Integrate VADER sentiment analysis for text emotion detection
+- Support for 8 Plutchik emotions: Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation
+- Display confidence percentages
+- Color-code content borders based on detected emotions:
+  - Joy: #FFD700 (gold)
+  - Trust: #4169E1 (blue)
+  - Fear: #800080 (purple)
+  - Surprise: #FFA500 (orange)
+  - Sadness: #4682B4 (steel blue)
+  - Disgust: #228B22 (forest green)
+  - Anger: #DC143C (crimson)
+  - Anticipation: #FF69B4 (hot pink)
+
+### 2. Five-Reaction System
+Interactive reaction buttons with real-time counts:
+- **Resonate** 🤝: "I feel the same way"
+- **Support** 👍: "I'm here for you"
+- **Learn** 🧠: "Tell me more"
+- **Challenge** ⚡: "I see it differently"
+- **Amplify** 📢: "This needs to be heard"
+
+### 3. Three Adjectives Personality System
+- User profile creation with personality adjective selection
+- Display as styled pill components
+- Categories: Creative, Empathetic, Curious, Analytical, Optimistic, Thoughtful, etc.
+
+### 4. Stories Functionality
+- 24-hour ephemeral content
+- Circular story viewers
+- Emotion-themed story creation
+- Story privacy controls
+
+### 5. Authentication System
+- User registration with email/password
+- Profile creation with three adjectives selection
+- Session persistence
+- User dropdown menu with settings
+
+## TECHNICAL REQUIREMENTS
+
+### Frontend Stack
+- React 18 with modern hooks
+- React Router for navigation
+- Styled Components or CSS Modules for styling
+- Framer Motion for animations
+- State management with Zustand or Context API
+
+### Backend/Database
+- Supabase for backend services
+- User authentication with Supabase Auth
+- Real-time subscriptions for live updates
+- Database tables:
+  - users (profiles, adjectives)
+  - threads (posts with emotion data)
+  - reactions (five-reaction system)
+  - stories (24-hour content)
+  - hashtags (trending topics)
+
+### PWA Features
+- Service worker for offline functionality
+- Web app manifest for installability
+- Push notifications capability
+- Responsive design for mobile/desktop
+
+## DEBUGGING PRIORITIES
+1. Fix authentication flow and session management
+2. Implement real-time emotion detection during typing
+3. Set up five-reaction system with live count updates
+4. Create proper navigation between all three main pages
+5. Implement stories creation and viewing
+6. Set up database schema and real-time subscriptions
+7. Add proper error handling and loading states
+
+## UI/UX IMPROVEMENTS NEEDED
+1. Smooth page transitions between tabs
+2. Loading animations for emotion detection
+3. Hover states for all interactive elements
+4. Proper mobile responsiveness
+5. Consistent spacing and typography
+6. Emotion-based visual feedback (border colors, animations)
+7. Accessibility features (proper contrast, keyboard navigation)
+
+## SUCCESS CRITERIA
+- All three main pages render correctly with proper navigation
+- Real-time emotion detection works during text input
+- Five-reaction system functions with live updates
+- User can create and view profiles with three adjectives
+- Stories functionality works for sharing daily vibes
+- Dark theme is consistent across all pages
+- PWA features work (installable, offline capable)
+- Database properly stores and retrieves all content types
+
+Build this as a modern, polished social media PWA that prioritizes user emotional well-being and authentic connections. The design should feel premium and engaging while maintaining the emotion-aware functionality at its core.
