@@ -14,7 +14,7 @@ import { useEffect } from 'react';
 import './App.css';
 
 function AppContent() {
-  const { user, loading, checkAuth } = useAuthStore();
+  const { user, session, isLoading, checkAuth } = useAuthStore();
   const location = useLocation();
   const [initialLoading, setInitialLoading] = useState(true);
 
@@ -27,11 +27,12 @@ function AppContent() {
   }, [checkAuth]);
 
   // Show loading screen to prevent CLS during initial auth check
-  if (initialLoading || loading) {
+  if (initialLoading || isLoading) {
     return <LoadingScreen message="Authenticating..." emotion="trust" />;
   }
 
-  if (!user) {
+  // Check if user is authenticated (has both user and session)
+  if (!user || !session) {
     return (
       <Routes>
         <Route path="/" element={<LandingPage />} />

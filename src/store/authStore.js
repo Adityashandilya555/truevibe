@@ -163,7 +163,9 @@ const useAuthStore = create(
         try {
           const { data: { session }, error } = await supabase.auth.getSession();
           
-          if (error) throw error;
+          if (error && error.name !== 'AuthSessionMissingError') {
+            throw error;
+          }
 
           if (session?.user) {
             set({

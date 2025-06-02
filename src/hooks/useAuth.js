@@ -113,4 +113,5 @@ const useAuth = () => {
   };
 };
 
+export { useAuth as default };
 export default useAuth;

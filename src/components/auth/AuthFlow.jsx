@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
 
 // Emotion-based adjectives with Plutchik's color mapping
@@ -79,13 +79,23 @@ const AuthFlow = () => {
     selectedAdjectives
   } = useAuthStore();
 
+  const navigate = useNavigate();
+
+  // Handle successful authentication
+  const handleAuthSuccess = () => {
+    // Small delay to ensure state is updated
+    setTimeout(() => {
+      navigate('/threads');
+    }, 100);
+  };
+
   // Form state
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [formErrors, setFormErrors] = useState({});
-  
+
   // Clear errors when switching between login/signup
   useEffect(() => {
     clearError();
@@ -95,33 +105,33 @@ const AuthFlow = () => {
   // Form validation
   const validateForm = () => {
     const errors = {};
-    
+
     // Email validation
     if (!email) {
       errors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       errors.email = 'Email is invalid';
     }
-    
+
     // Password validation
     if (!password) {
       errors.password = 'Password is required';
     } else if (password.length < 6) {
       errors.password = 'Password must be at least 6 characters';
     }
-    
+
     // Confirm password validation (signup only)
     if (!isLogin) {
       if (password !== confirmPassword) {
         errors.confirmPassword = 'Passwords do not match';
       }
-      
+
       // Adjective validation
       if (!isLogin && (!selectedAdjectives.one || !selectedAdjectives.two || !selectedAdjectives.three)) {
         errors.adjectives = 'Please select three adjectives that describe you';
       }
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -129,14 +139,26 @@ const AuthFlow = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     if (isLogin) {
-      await signIn(email, password);
-    } else {
-      await signUp(email, password);
-    }
+        // Login
+        const result = await signIn(email, password);
+        if (result.error) {
+          setFormErrors({ submit: result.error.message });
+        } else {
+          handleAuthSuccess();
+        }
+      } else {
+        // Signup
+        const result = await signUp(email, password, '', selectedAdjectives);
+        if (result.error) {
+          setFormErrors({ submit: result.error.message });
+        } else {
+          handleAuthSuccess();
+        }
+      }
   };
 
   // Handle adjective selection
@@ -146,7 +168,7 @@ const AuthFlow = () => {
     if (currentSelections.includes(adjective.value) && selectedAdjectives[position] !== adjective.value) {
       return;
     }
-    
+
     setAdjective(position, adjective.value);
   };
 
@@ -263,7 +285,7 @@ const AuthFlow = () => {
           {!isLogin && (
             <div className="space-y-4">
               <h3 className="text-md font-medium text-gray-700">Choose 3 adjectives that describe you</h3>
-              
+
               {/* Display validation error */}
               {formErrors.adjectives && (
                 <p className="text-sm text-red-600">{formErrors.adjectives}</p>

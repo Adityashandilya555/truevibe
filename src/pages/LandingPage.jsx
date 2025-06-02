@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Heart, Users, MessageCircle, Smile, Shield, BarChart2 } from 'lucide-react';
 import AuthFlow from '../components/auth/AuthFlow';
+import useAuthStore from '../store/authStore';
 
 /**
  * LandingPage Component
@@ -15,6 +16,14 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const [showAuthFlow, setShowAuthFlow] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
+  const { user, session } = useAuthStore();
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (user && session) {
+      navigate('/threads');
+    }
+  }, [user, session, navigate]);
 
   // Features list with icons and descriptions
   const features = [
