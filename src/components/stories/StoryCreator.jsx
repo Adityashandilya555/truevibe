@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Camera, Image, X } from 'lucide-react';
 import { supabase } from '../../services/supabase';
-import { useAuth } from '../../hooks/useAuth';
+import useAuth from '../../hooks/useAuth';
 import { analyzeEmotion } from '../../services/vaderAnalysis';
 
 const EMOTION_THEMES = {
@@ -39,7 +38,7 @@ const StoryCreator = ({ onClose, onStoryCreated }) => {
   const handleContentChange = (e) => {
     const text = e.target.value;
     setContent(text);
-    
+
     if (text.trim()) {
       const emotionData = analyzeEmotion(text);
       if (emotionData && emotionData.emotion) {
@@ -55,21 +54,21 @@ const StoryCreator = ({ onClose, onStoryCreated }) => {
     setIsSubmitting(true);
     try {
       let imageUrl = null;
-      
+
       if (image) {
         const fileExt = image.name.split('.').pop();
         const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-        
+
         const { data, error: uploadError } = await supabase.storage
           .from('stories')
           .upload(fileName, image);
 
         if (uploadError) throw uploadError;
-        
+
         const { data: { publicUrl } } = supabase.storage
           .from('stories')
           .getPublicUrl(fileName);
-        
+
         imageUrl = publicUrl;
       }
 
@@ -148,7 +147,7 @@ const StoryCreator = ({ onClose, onStoryCreated }) => {
                   className="hidden"
                 />
               </label>
-              
+
               <label className="flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">
                 <Image size={16} />
                 <span className="text-sm">Gallery</span>

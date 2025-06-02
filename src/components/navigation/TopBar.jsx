@@ -16,7 +16,7 @@ const TopBar = () => {
           >
             <Menu size={24} />
           </button>
-          
+
           {showHamburgerMenu && (
             <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-50">
               <div className="py-1">

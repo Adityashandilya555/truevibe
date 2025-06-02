@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../services/supabase';
-import { useAuth } from '../../hooks/useAuth';
+import useAuth from '../../hooks/useAuth';
 
 const REACTIONS = [
   { type: 'resonate', emoji: '🤝', label: 'Resonate', description: 'I feel the same way' },
@@ -89,7 +88,7 @@ const ReactionSystem = ({ threadId, initialReactions = {} }) => {
           .delete()
           .eq('thread_id', threadId)
           .eq('user_id', user.id);
-        
+
         setUserReaction(null);
       } else {
         // Add or update reaction
@@ -100,10 +99,10 @@ const ReactionSystem = ({ threadId, initialReactions = {} }) => {
             user_id: user.id,
             type: reactionType
           });
-        
+
         setUserReaction(reactionType);
       }
-      
+
       fetchReactionCounts();
     } catch (error) {
       console.error('Error handling reaction:', error);

@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../services/supabase';
-import { useAuth } from '../../hooks/useAuth';
+import useAuth from '../../hooks/useAuth';
 import ReactionSystem from './ReactionSystem';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -62,7 +61,7 @@ const ThreadFeed = () => {
         thread.reactions.forEach(reaction => {
           reactionCounts[reaction.type] = (reactionCounts[reaction.type] || 0) + 1;
         });
-        
+
         return {
           ...thread,
           reactionCounts
@@ -98,7 +97,7 @@ const ThreadFeed = () => {
 
   const ThreadCard = ({ thread }) => {
     const emotionColor = EMOTION_COLORS[thread.emotion?.toLowerCase()] || '#6B7280';
-    
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -121,7 +120,7 @@ const ThreadFeed = () => {
               </div>
             )}
           </div>
-          
+
           <div className="flex-1">
             <div className="flex items-center space-x-2">
               <h3 className="font-semibold text-gray-900 dark:text-white">
@@ -149,7 +148,7 @@ const ThreadFeed = () => {
             className="text-gray-900 dark:text-white mb-2"
             dangerouslySetInnerHTML={{ __html: renderHashtags(thread.content) }}
           />
-          
+
           {thread.image_url && (
             <img 
               src={thread.image_url} 
