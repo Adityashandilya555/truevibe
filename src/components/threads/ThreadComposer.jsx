@@ -594,23 +594,23 @@ const ThreadComposer = () => {
       </div>
 
       {/* Emotion Detection Display */}
-      {emotionData && (
+      {emotion && emotion.dominantEmotion !== 'neutral' && emotion.confidence > 0.3 && (
         <div className="mt-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border-l-4" style={{
-          borderLeftColor: emotionData.color
+          borderLeftColor: emotion.color
         }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Detected Emotion:
               </span>
-              <span className="text-sm font-semibold" style={{ color: emotionData.color }}>
-                {emotionData.emotion}
+              <span className="text-sm font-semibold" style={{ color: emotion.color }}>
+                {emotion.dominantEmotion}
               </span>
             </div>
             <div className="flex items-center space-x-1">
               <span className="text-xs text-gray-500">Confidence:</span>
-              <span className="text-xs font-medium" style={{ color: emotionData.color }}>
-                {Math.round(emotionData.confidence * 100)}%
+              <span className="text-xs font-medium" style={{ color: emotion.color }}>
+                {Math.round(emotion.confidence * 100)}%
               </span>
             </div>
           </div>
@@ -652,7 +652,7 @@ const ThreadComposer = () => {
           {hashtagSuggestions.map((tag, index) => (
             <motion.button
               key={tag}
-              onClick={()={() => addHashtag(tag)}
+              onClick={() => addHashtag(tag)}
               className="px-3 py-2 sm:px-2 sm:py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors min-h-[40px] sm:min-h-0 flex items-center justify-center"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
