@@ -1,154 +1,247 @@
-import React, { useState } from 'react';
-import { useEmotion } from '../hooks';
-import { Search } from 'lucide-react';
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Filter, RefreshCw } from 'lucide-react';
+import ThreadComposer from '../components/threads/ThreadComposer';
+import useEmotion from '../hooks/useEmotion';
+import { supabase } from '../services/supabase';
+import useAuthStore from '../store/authStore';
 
 const ThreadsPage = () => {
-  const [activeTab, setActiveTab] = useState('trending');
-  const [threadText, setThreadText] = useState('');
-  const { analyzeEmotion } = useEmotion();
+  const { user } = useAuthStore();
+  const { getColorForEmotion } = useEmotion();
+  const [threads, setThreads] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEmotion, setSelectedEmotion] = useState('all');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const currentEmotion = threadText ? analyzeEmotion(threadText) : null;
+  const emotions = [
+    { key: 'all', label: 'All', icon: '🌈' },
+    { key: 'joy', label: 'Joy', icon: '😊' },
+    { key: 'trust', label: 'Trust', icon: '🤝' },
+    { key: 'fear', label: 'Fear', icon: '😨' },
+    { key: 'surprise', label: 'Surprise', icon: '😲' },
+    { key: 'sadness', label: 'Sadness', icon: '😢' },
+    { key: 'disgust', label: 'Disgust', icon: '🤢' },
+    { key: 'anger', label: 'Anger', icon: '😡' },
+    { key: 'anticipation', label: 'Anticipation', icon: '🎯' }
+  ];
 
-  const mockThreads = [
-    {
-      id: 1,
-      user: 'Sarah Chen',
-      timestamp: '2 hours ago',
-      content: 'Just launched my first startup! 🚀 After months of coding and countless sleepless nights, we\'re finally live. The feeling is incredible!',
-      hashtags: ['#startup', '#entrepreneurship', '#coding'],
-      emotion: { name: 'joy', confidence: 85 },
-      reactions: {
-        resonate: 45,
-        support: 23,
-        learn: 78,
-        challenge: 5,
-        amplify: 56
+  const fetchThreads = async () => {
+    try {
+      setIsRefreshing(true);
+      let query = supabase
+        .from('threads')
+        .select(`
+          *,
+          user_profiles (
+            username,
+            avatar_url,
+            adjectives
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (selectedEmotion !== 'all') {
+        query = query.eq('emotion', selectedEmotion);
       }
-    }
-  ];
 
-  const reactions = [
-    { type: 'resonate', emoji: '🤝', label: 'Resonate' },
-    { type: 'support', emoji: '👍', label: 'Support' },
-    { type: 'learn', emoji: '🧠', label: 'Learn' },
-    { type: 'challenge', emoji: '⚡', label: 'Challenge' },
-    { type: 'amplify', emoji: '📢', label: 'Amplify' }
-  ];
+      const { data, error } = await query;
+
+      if (error) throw error;
+      setThreads(data || []);
+    } catch (error) {
+      console.error('Error fetching threads:', error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchThreads();
+  }, [selectedEmotion]);
+
+  const filteredThreads = threads.filter(thread =>
+    thread.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (thread.hashtags && thread.hashtags.some(tag => 
+      tag.toLowerCase().includes(searchQuery.toLowerCase())
+    ))
+  );
+
+  const handleRefresh = () => {
+    fetchThreads();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 bg-gray-900 text-white p-4">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="max-w-2xl mx-auto">
+    <div className="flex-1 bg-gray-900 text-white pb-20">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-700 space-y-4">
         {/* Search Bar */}
-        <div className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search topics, emotions, hashtags..."
-              className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500"
-            />
-          </div>
-        </div>
-
-        {/* Trending/Following Tabs */}
-        <div className="px-4 mb-4">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setActiveTab('trending')}
-              className={`px-4 py-2 rounded-lg font-medium ${
-                activeTab === 'trending'
-                  ? 'bg-cyan-500 text-gray-900'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-            >
-              Trending
-            </button>
-            <button
-              onClick={() => setActiveTab('following')}
-              className={`px-4 py-2 rounded-lg font-medium ${
-                activeTab === 'following'
-                  ? 'bg-cyan-500 text-gray-900'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-            >
-              Following
-            </button>
-          </div>
-        </div>
-
-        {/* Thread Composer */}
-        <div className="mx-4 mb-6 card p-4">
-          <textarea
-            value={threadText}
-            onChange={(e) => setThreadText(e.target.value)}
-            placeholder="Share your thoughts... (emotion will be detected automatically)"
-            className="w-full h-24 p-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 resize-none focus:outline-none focus:border-cyan-500"
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Search threads..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400"
           />
-
-          <div className="flex justify-between items-center mt-3">
-            <div className="text-sm text-gray-400">
-              {currentEmotion && (
-                <span>Emotion: {currentEmotion.name} ({currentEmotion.confidence}% confidence)</span>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-400">{threadText.length}/280</span>
-              <button
-                disabled={!threadText.trim()}
-                className="btn-primary px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Post
-              </button>
-            </div>
-          </div>
         </div>
 
-        {/* Threads Feed */}
-        <div className="px-4">
-          {mockThreads.map((thread) => (
-            <div key={thread.id} className={`card p-4 mb-4 emotion-${thread.emotion.name}`}>
-              <div className="flex items-start space-x-3">
-                <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-semibold">SC</span>
+        {/* Emotion Filter */}
+        <div className="flex items-center space-x-2 overflow-x-auto pb-2">
+          <Filter className="text-gray-400 flex-shrink-0" size={16} />
+          {emotions.map((emotion) => (
+            <button
+              key={emotion.key}
+              onClick={() => setSelectedEmotion(emotion.key)}
+              className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs whitespace-nowrap transition-colors ${
+                selectedEmotion === emotion.key
+                  ? 'bg-cyan-500 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              <span>{emotion.icon}</span>
+              <span>{emotion.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Refresh Button */}
+        <div className="flex justify-end">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center space-x-2 px-3 py-1 bg-gray-700 rounded-lg text-gray-300 hover:bg-gray-600 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`${isRefreshing ? 'animate-spin' : ''}`} size={16} />
+            <span>Refresh</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Thread Composer */}
+      <div className="p-4">
+        <ThreadComposer />
+      </div>
+
+      {/* Threads List */}
+      <div className="px-4 space-y-4">
+        <AnimatePresence>
+          {filteredThreads.length === 0 ? (
+            <motion.div
+              className="text-center py-12 text-gray-400"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <p className="text-lg">No threads found</p>
+              <p className="text-sm">
+                {searchQuery 
+                  ? 'Try adjusting your search terms' 
+                  : 'Be the first to share your vibe!'}
+              </p>
+            </motion.div>
+          ) : (
+            filteredThreads.map((thread, index) => (
+              <motion.div
+                key={thread.id}
+                className="bg-gray-800 rounded-lg p-4 border-l-4"
+                style={{ borderLeftColor: getColorForEmotion(thread.emotion) }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                {/* User Info */}
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-gray-900 font-semibold">
+                    {thread.user_profiles?.username?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                  <div>
+                    <p className="font-medium">
+                      {thread.user_profiles?.username || 'Anonymous'}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {new Date(thread.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="ml-auto flex items-center space-x-2">
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: getColorForEmotion(thread.emotion) }}
+                    />
+                    <span className="text-xs text-gray-400 capitalize">
+                      {thread.emotion}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="font-semibold">{thread.user}</span>
-                    <span className="text-sm text-gray-400">{thread.timestamp}</span>
+                {/* Content */}
+                <p className="text-gray-100 mb-3 whitespace-pre-wrap">
+                  {thread.content}
+                </p>
+
+                {/* Media */}
+                {thread.media_url && (
+                  <div className="mb-3 rounded-lg overflow-hidden">
+                    {thread.media_type === 'image' ? (
+                      <img 
+                        src={thread.media_url} 
+                        alt="Thread media"
+                        className="w-full max-h-64 object-cover"
+                      />
+                    ) : thread.media_type === 'video' ? (
+                      <video 
+                        src={thread.media_url} 
+                        controls
+                        className="w-full max-h-64 object-cover"
+                      />
+                    ) : null}
                   </div>
+                )}
 
-                  <p className="text-gray-200 mb-3">{thread.content}</p>
-
+                {/* Hashtags */}
+                {thread.hashtags && thread.hashtags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {thread.hashtags.map((hashtag) => (
-                      <span key={hashtag} className="text-cyan-400 hover:underline cursor-pointer">
-                        {hashtag}
+                    {thread.hashtags.map((tag, tagIndex) => (
+                      <span
+                        key={tagIndex}
+                        className="text-xs px-2 py-1 bg-gray-700 rounded-full text-cyan-400"
+                      >
+                        #{tag}
                       </span>
                     ))}
                   </div>
+                )}
 
-                  <div className="bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-medium inline-block mb-4">
-                    {thread.emotion.name.charAt(0).toUpperCase() + thread.emotion.name.slice(1)} {thread.emotion.confidence}% confidence
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    {reactions.map((reaction) => (
-                      <button
-                        key={reaction.type}
-                        className="flex items-center space-x-1 px-2 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm"
-                      >
-                        <span>{reaction.emoji}</span>
-                        <span>{reaction.label}</span>
-                        <span className="text-gray-400">{thread.reactions[reaction.type]}</span>
-                      </button>
-                    ))}
+                {/* Placeholder for reactions */}
+                <div className="flex items-center justify-between pt-3 border-t border-gray-700">
+                  <div className="flex items-center space-x-4 text-sm text-gray-400">
+                    <span>🤝 Resonate</span>
+                    <span>👍 Support</span>
+                    <span>🧠 Learn</span>
+                    <span>⚡ Challenge</span>
+                    <span>📢 Amplify</span>
                   </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              </motion.div>
+            ))
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -5,10 +5,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   base: '/',
-  
+
   plugins: [
     react(),
-    
+
     nodePolyfills({
       include: ['crypto', 'buffer', 'stream', 'util'],
       globals: {
@@ -18,7 +18,7 @@ export default defineConfig({
       },
       protocolImports: true,
     }),
-    
+
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
@@ -64,18 +64,22 @@ export default defineConfig({
       },
     }),
   ],
-  
+
   resolve: {
     alias: {
       crypto: 'crypto-browserify',
     }
   },
-  
+
   define: {
     global: 'globalThis',
   },
-  
+
   optimizeDeps: {
     include: ['uuid', 'crypto-js', 'lodash.debounce', '@emotion/is-prop-valid'],
+  },
+  server: {
+    host: '0.0.0.0',
+    port: 5000
   }
 });
