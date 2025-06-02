@@ -3,14 +3,48 @@ import { Menu, Settings, LogIn, FileText } from 'lucide-react';
 
 const TopBar = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
 
   return (
     <header className="bg-gray-800 border-b border-gray-700 px-4 py-3">
       <div className="flex items-center justify-between">
         {/* Hamburger Menu */}
-        <button className="text-gray-400 hover:text-white">
-          <Menu size={24} />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowHamburgerMenu(!showHamburgerMenu)}
+            className="text-gray-400 hover:text-white"
+          >
+            <Menu size={24} />
+          </button>
+          
+          {showHamburgerMenu && (
+            <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+              <div className="py-1">
+                <a
+                  href="/"
+                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => setShowHamburgerMenu(false)}
+                >
+                  Home
+                </a>
+                <a
+                  href="/documentation"
+                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => setShowHamburgerMenu(false)}
+                >
+                  Documentation
+                </a>
+                <a
+                  href="/support"
+                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => setShowHamburgerMenu(false)}
+                >
+                  Support
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* TrueVibe Branding */}
         <h1 className="text-xl font-bold text-cyan-400">TrueVibe</h1>

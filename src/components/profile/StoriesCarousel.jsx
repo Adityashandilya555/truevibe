@@ -21,19 +21,19 @@ const EMOTION_COLORS = {
 
 const StoriesCarousel = () => {
   const { user, profile } = useAuthStore();
-  
+
   // Stories state
   const [userStories, setUserStories] = useState([]);
   const [friendStories, setFriendStories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Story viewer state
   const [viewingStory, setViewingStory] = useState(null);
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
   const [viewingUserStories, setViewingUserStories] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [storyProgress, setStoryProgress] = useState(0);
-  
+
   // Story creation state
   const [isCreating, setIsCreating] = useState(false);
   const [storyForm, setStoryForm] = useState({
@@ -46,7 +46,7 @@ const StoriesCarousel = () => {
   });
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  
+
   // Refs
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
@@ -55,7 +55,7 @@ const StoriesCarousel = () => {
   // Fetch user's stories
   const fetchUserStories = async () => {
     if (!user) return;
-    
+
     try {
       const now = new Date().toISOString();
       const { data, error } = await supabase
@@ -64,7 +64,7 @@ const StoriesCarousel = () => {
         .eq('user_id', user.id)
         .gte('expires_at', now)
         .order('created_at', { ascending: false });
-        
+
       if (error) throw error;
       setUserStories(data || []);
     } catch (error) {
@@ -75,25 +75,25 @@ const StoriesCarousel = () => {
   // Fetch friends' stories with emotion analysis
   const fetchFriendStories = async () => {
     if (!user) return;
-    
+
     setIsLoading(true);
-    
+
     try {
       // Get followed users
       const { data: followsData, error: followsError } = await supabase
         .from('follows')
         .select('followed_id')
         .eq('follower_id', user.id);
-        
+
       if (followsError) throw followsError;
-      
+
       const followedIds = followsData.map(follow => follow.followed_id);
-      
+
       if (followedIds.length === 0) {
         setFriendStories([]);
         return;
       }
-      
+
       // Get stories with profile data
       const now = new Date().toISOString();
       const { data, error } = await supabase
@@ -105,16 +105,16 @@ const StoriesCarousel = () => {
         .in('user_id', followedIds)
         .gte('expires_at', now)
         .order('created_at', { ascending: false });
-        
+
       if (error) throw error;
-      
+
       const transformedData = data?.map(story => ({
         ...story,
         username: story.profiles.username,
         avatar_url: story.profiles.avatar_url,
         viewed: false
       })) || [];
-      
+
       setFriendStories(transformedData);
       await checkViewedStories(transformedData);
     } catch (error) {
@@ -127,7 +127,7 @@ const StoriesCarousel = () => {
   // Check viewed stories
   const checkViewedStories = async (stories) => {
     if (!user || !stories.length) return;
-    
+
     try {
       const storyIds = stories.map(story => story.id);
       const { data, error } = await supabase
@@ -135,11 +135,11 @@ const StoriesCarousel = () => {
         .select('story_id')
         .eq('user_id', user.id)
         .in('story_id', storyIds);
-        
+
       if (error) throw error;
-      
+
       const viewedStoryIds = new Set(data.map(view => view.story_id));
-      
+
       setFriendStories(prev => 
         prev.map(story => ({
           ...story,
@@ -154,7 +154,7 @@ const StoriesCarousel = () => {
   // Mark story as viewed
   const markStoryAsViewed = async (storyId) => {
     if (!user || !storyId) return;
-    
+
     try {
       await supabase
         .from('story_views')
@@ -163,7 +163,7 @@ const StoriesCarousel = () => {
           story_id: storyId,
           viewed_at: new Date().toISOString()
         });
-        
+
       setFriendStories(prev => 
         prev.map(story => 
           story.id === storyId ? { ...story, viewed: true } : story
@@ -177,7 +177,7 @@ const StoriesCarousel = () => {
   // Handle text emotion analysis
   const handleTextChange = async (text) => {
     setStoryForm(prev => ({ ...prev, text }));
-    
+
     if (text.trim()) {
       const emotionResult = await analyzeEmotion(text);
       setStoryForm(prev => ({
@@ -198,13 +198,13 @@ const StoriesCarousel = () => {
   const handleMediaChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       alert('File size too large. Maximum size is 10MB.');
       return;
     }
-    
+
     const previewUrl = URL.createObjectURL(file);
     setStoryForm(prev => ({
       ...prev,
@@ -216,15 +216,15 @@ const StoriesCarousel = () => {
   // Create story with emotion analysis
   const createStory = async () => {
     if (!user || !storyForm.mediaFile) return;
-    
+
     setIsUploading(true);
     setUploadProgress(0);
-    
+
     try {
       // Upload media
       const fileExt = storyForm.mediaFile.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from('stories')
         .upload(fileName, storyForm.mediaFile, {
@@ -232,18 +232,18 @@ const StoriesCarousel = () => {
             setUploadProgress(Math.round((progress.loaded / progress.total) * 100));
           }
         });
-        
+
       if (uploadError) throw uploadError;
-      
+
       // Get public URL
       const { data: urlData } = supabase.storage
         .from('stories')
         .getPublicUrl(fileName);
-        
+
       // Create story record
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
-      
+
       const { error: storyError } = await supabase
         .from('stories')
         .insert({
@@ -256,9 +256,9 @@ const StoriesCarousel = () => {
           created_at: new Date().toISOString(),
           expires_at: expiresAt.toISOString()
         });
-        
+
       if (storyError) throw storyError;
-      
+
       // Reset form
       setStoryForm({
         text: '',
@@ -269,7 +269,7 @@ const StoriesCarousel = () => {
         emotionConfidence: 0
       });
       setIsCreating(false);
-      
+
       // Refresh stories
       fetchUserStories();
     } catch (error) {
@@ -284,17 +284,17 @@ const StoriesCarousel = () => {
   const handleViewStory = (storyId, isUserStory = false) => {
     const stories = isUserStory ? userStories : friendStories;
     const index = stories.findIndex(s => s.id === storyId);
-    
+
     if (index !== -1) {
       setViewingUserStories(isUserStory);
       setActiveStoryIndex(index);
       setViewingStory(stories);
       setStoryProgress(0);
-      
+
       if (!isUserStory) {
         markStoryAsViewed(storyId);
       }
-      
+
       // Start progress timer
       startStoryProgress();
     }
@@ -302,12 +302,12 @@ const StoriesCarousel = () => {
 
   const startStoryProgress = () => {
     setStoryProgress(0);
-    
+
     // Stop previous interval if exists
     if (progressIntervalRef.current) {
       progressIntervalRef.current.stop();
     }
-    
+
     // Use optimizedInterval instead of setInterval
     progressIntervalRef.current = optimizedInterval(() => {
       setStoryProgress(prev => {
@@ -322,18 +322,18 @@ const StoriesCarousel = () => {
 
   const handleNextStory = () => {
     const stories = viewingUserStories ? userStories : friendStories;
-    
+
     if (progressIntervalRef.current) {
       progressIntervalRef.current.stop();
     }
-    
+
     if (activeStoryIndex < stories.length - 1) {
       setActiveStoryIndex(prev => prev + 1);
-      
+
       if (!viewingUserStories) {
         markStoryAsViewed(stories[activeStoryIndex + 1].id);
       }
-      
+
       startStoryProgress();
     } else {
       handleCloseStory();
@@ -344,7 +344,7 @@ const StoriesCarousel = () => {
     if (progressIntervalRef.current) {
       progressIntervalRef.current.stop();
     }
-    
+
     if (activeStoryIndex > 0) {
       setActiveStoryIndex(prev => prev - 1);
       startStoryProgress();
@@ -355,7 +355,7 @@ const StoriesCarousel = () => {
     if (progressIntervalRef.current) {
       progressIntervalRef.current.stop();
     }
-    
+
     setViewingStory(null);
     setActiveStoryIndex(0);
     setStoryProgress(0);
@@ -381,11 +381,11 @@ const StoriesCarousel = () => {
   return (
     <div className="w-full">
       <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-4">Stories</h2>
-      
+
       {/* Your Stories Section */}
       <div>
         <h3 className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-3">Your Stories</h3>
-        
+
         <div className="flex overflow-x-auto pb-3 space-x-4 hide-scrollbar">
           {/* Create Story Button */}
           <div 
@@ -397,12 +397,12 @@ const StoriesCarousel = () => {
             </div>
             <span className="mt-2 text-xs sm:text-sm text-center text-gray-600 dark:text-gray-400">Add Story</span>
           </div>
-          
+
           {/* User Story Items */}
           {userStories.map(story => {
             const emotion = story.emotion || 'neutral';
             const timeLeft = getTimeLeft(story.created_at, story.expires_at);
-            
+
             return (
               <div 
                 key={story.id} 
@@ -412,7 +412,7 @@ const StoriesCarousel = () => {
                 <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full cursor-pointer min-h-[44px] min-w-[44px]">
                   {/* Gradient Ring */}
                   <div className={`absolute inset-0 rounded-full bg-gradient-to-tr ${EMOTION_COLORS[emotion]} animate-pulse-slow`}></div>
-                  
+
                   {/* Inner image */}
                   <div className="absolute inset-[2px] rounded-full bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden">
                     <img 
@@ -421,7 +421,7 @@ const StoriesCarousel = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  
+
                   {/* Time indicator */}
                   <div className="absolute bottom-0 right-0 bg-black bg-opacity-70 text-white text-[8px] rounded-full w-6 h-6 flex items-center justify-center">
                     {timeLeft}
@@ -435,18 +435,18 @@ const StoriesCarousel = () => {
           })}
         </div>
       </div>
-      
+
       {/* Friends Stories Section */}
       {friendStories.length > 0 && (
         <div className="mt-6">
           <h3 className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-3">Friend Stories</h3>
-          
+
           <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-4">
             {friendStories.map(story => {
               const emotion = story.emotion || 'neutral';
               const timeLeft = getTimeLeft(story.created_at, story.expires_at);
               const viewed = story.viewed;
-              
+
               return (
                 <div 
                   key={story.id} 
@@ -458,7 +458,7 @@ const StoriesCarousel = () => {
                     <div 
                       className={`absolute inset-0 rounded-full bg-gradient-to-tr ${EMOTION_COLORS[emotion]} ${viewed ? 'opacity-40' : 'animate-pulse-slow'}`}
                     ></div>
-                    
+
                     {/* Inner image */}
                     <div className="absolute inset-[2px] rounded-full bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden">
                       <img 
@@ -467,7 +467,7 @@ const StoriesCarousel = () => {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    
+
                     {/* Time indicator */}
                     <div className="absolute bottom-0 right-0 bg-black bg-opacity-70 text-white text-[8px] rounded-full w-6 h-6 flex items-center justify-center">
                       {timeLeft}
@@ -482,7 +482,7 @@ const StoriesCarousel = () => {
           </div>
         </div>
       )}
-      
+
       {/* Story Creator Modal */}
       <AnimatePresence>
         {isCreating && (
@@ -504,9 +504,9 @@ const StoriesCarousel = () => {
               >
                 <X className="w-6 h-6" />
               </button>
-              
+
               <h3 className="text-xl font-bold mb-6 text-center">Create Your Story</h3>
-              
+
               {/* Media Upload */}
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -542,7 +542,7 @@ const StoriesCarousel = () => {
                   />
                 </div>
               </div>
-              
+
               {/* Text Input with Emotion Analysis */}
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -569,7 +569,7 @@ const StoriesCarousel = () => {
                   )}
                 </div>
               </div>
-              
+
               {/* Music Track */}
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -586,7 +586,7 @@ const StoriesCarousel = () => {
                   />
                 </div>
               </div>
-              
+
               {/* Upload Progress */}
               {isUploading && (
                 <div className="mb-6">
@@ -603,7 +603,7 @@ const StoriesCarousel = () => {
                   </p>
                 </div>
               )}
-              
+
               {/* Action Buttons */}
               <div className="flex space-x-3">
                 <button
@@ -656,7 +656,7 @@ const StoriesCarousel = () => {
                 </div>
               ))}
             </div>
-            
+
             {/* Story header */}
             <div className="absolute top-12 left-4 right-4 z-20 flex items-center justify-between">
               <div className="flex items-center">
@@ -685,7 +685,7 @@ const StoriesCarousel = () => {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            
+
             {/* Story content */}
             <div className="flex-1 flex items-center justify-center relative">
               <img 
@@ -693,7 +693,7 @@ const StoriesCarousel = () => {
                 alt="Story"
                 className="max-h-full max-w-full object-contain"
               />
-              
+
               {/* Story text overlay */}
               {viewingStory[activeStoryIndex]?.text_content && (
                 <div className="absolute bottom-24 left-4 right-4">
@@ -704,7 +704,7 @@ const StoriesCarousel = () => {
                   </div>
                 </div>
               )}
-              
+
               {/* Music info */}
               {viewingStory[activeStoryIndex]?.background_music && (
                 <div className="absolute bottom-8 left-4 right-4">
@@ -722,7 +722,7 @@ const StoriesCarousel = () => {
                   </div>
                 </div>
               )}
-              
+
               {/* Navigation tap zones */}
               <div className="absolute inset-0 flex">
                 <div className="flex-1" onClick={handlePrevStory}></div>

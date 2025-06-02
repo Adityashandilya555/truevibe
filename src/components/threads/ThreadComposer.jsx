@@ -593,6 +593,30 @@ const ThreadComposer = () => {
         {charsLeft} characters left
       </div>
       
+      {/* Emotion Detection Display */}
+      {emotionData && (
+        <div className="mt-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border-l-4" style={{
+          borderLeftColor: emotionData.color
+        }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Detected Emotion:
+              </span>
+              <span className="text-sm font-semibold" style={{ color: emotionData.color }}>
+                {emotionData.emotion}
+              </span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <span className="text-xs text-gray-500">Confidence:</span>
+              <span className="text-xs font-medium" style={{ color: emotionData.color }}>
+                {Math.round(emotionData.confidence * 100)}%
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex space-x-2 mt-3">
         <motion.button

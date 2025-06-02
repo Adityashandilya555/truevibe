@@ -59,6 +59,14 @@ const ADJECTIVE_OPTIONS = {
 // Flatten adjective options for selection
 const ALL_ADJECTIVES = Object.values(ADJECTIVE_OPTIONS).flat();
 
+// Enhanced error handling for auth
+const AUTH_ERRORS = {
+  'Invalid login credentials': 'Invalid email or password. Please check your credentials.',
+  'Email not confirmed': 'Please check your email and click the confirmation link before signing in.',
+  'User already registered': 'An account with this email already exists. Try signing in instead.',
+  'Password should be at least 6 characters': 'Password must be at least 6 characters long.',
+};
+
 const AuthFlow = () => {
   // Auth store state and actions
   const { 

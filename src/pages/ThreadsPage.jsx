@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, RefreshCw } from 'lucide-react';
@@ -6,6 +5,7 @@ import ThreadComposer from '../components/threads/ThreadComposer';
 import useEmotion from '../hooks/useEmotion';
 import { supabase } from '../services/supabase';
 import useAuthStore from '../store/authStore';
+import ThreadFeed from '../components/threads/ThreadFeed';
 
 const ThreadsPage = () => {
   const { user } = useAuthStore();
@@ -136,6 +136,9 @@ const ThreadsPage = () => {
       {/* Thread Composer */}
       <div className="p-4">
         <ThreadComposer />
+        <div className="mt-8">
+          <ThreadFeed />
+        </div>
       </div>
 
       {/* Threads List */}
