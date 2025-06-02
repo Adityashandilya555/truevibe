@@ -1,0 +1,37 @@
+<div class="luna-console-preview" data-id="36"><div class="luna-console-preview-container"><div class="luna-console-preview-icon-container"><span class="luna-console-icon luna-console-icon-caret-right"></span></div><span class="luna-console-preview-content-container"><span class="luna-console-descriptor">TypeError</span> <span class="luna-console-object-preview">{}</span></span></div><div class="luna-console-json luna-console-hidden"></div></div>
+
+The above error occurred in the <ReactionSystem> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+
+ErrorBoundary caught an error 
+TypeError {}
+ 
+Object {componentStack: "↵    at ReactionSystem…"}
+
+<div class="luna-console-preview" data-id="39"><div class="luna-console-preview-container"><div class="luna-console-preview-icon-container"><span class="luna-console-icon luna-console-icon-caret-right"></span></div><span class="luna-console-preview-content-container"><span class="luna-console-descriptor">TypeError</span> <span class="luna-console-object-preview">{}</span></span></div><div class="luna-console-json luna-console-hidden"></div></div>
+
+The above error occurred in the <ReactionSystem> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+
+ErrorBoundary caught an error 
+TypeError {}
+ 
+Object {componentStack: "↵    at ReactionSystem…"}
+
+<div class="luna-console-preview" data-id="42"><div class="luna-console-preview-container"><div class="luna-console-preview-icon-container"><span class="luna-console-icon luna-console-icon-caret-right"></span></div><span class="luna-console-preview-content-container"><span class="luna-console-descriptor">TypeError</span> <span class="luna-console-object-preview">{}</span></span></div><div class="luna-console-json luna-console-hidden"></div></div>
+
+The above error occurred in the <ReactionSystem> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+
+ErrorBoundary caught an error 
+TypeError {}
+ 
+Object {componentStack: "↵    at ReactionSystem…"}
+
+Service Worker registered successfully for TrueVibe: https://0c5dc0b6-68a8-4064-98d3-515c7132c932-00-1yxjszu3grltu.pike.replit.dev:5000/
+TrueVibe CLS: 0.353
+TrueVibe CLS: 0.38
+TrueVibe CLS: 0.247
