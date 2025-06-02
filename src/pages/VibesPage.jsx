@@ -1,219 +1,211 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, Heart, Users, BarChart3, Calendar, Filter } from 'lucide-react';
-import useEmotion from '../hooks/useEmotion';
-import { getEmotionColor } from '../services/emotion/vaderEnhanced';
+import { TrendingUp, Hash, Users, Calendar } from 'lucide-react';
+import { supabase } from '../services/supabase';
 
 const VibesPage = () => {
-  const { getEmotionTrends } = useEmotion();
-  const [trends, setTrends] = useState({});
-  const [selectedPeriod, setSelectedPeriod] = useState('24h');
-  const [isLoading, setIsLoading] = useState(true);
+  const [emotionStats, setEmotionStats] = useState([]);
+  const [trendingHashtags, setTrendingHashtags] = useState([]);
+  const [communityInsights, setCommunityInsights] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTrends = () => {
-      setIsLoading(true);
-      try {
-        const emotionTrends = getEmotionTrends();
-        setTrends(emotionTrends);
-      } catch (error) {
-        console.error('Error fetching emotion trends:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTrends();
-    // Refresh trends every 30 seconds
-    const interval = setInterval(fetchTrends, 30000);
-    return () => clearInterval(interval);
-  }, [getEmotionTrends, selectedPeriod]);
-
-  const emotionLabels = {
-    joy: '😊 Joy',
-    trust: '🤝 Trust',
-    fear: '😨 Fear',
-    surprise: '😲 Surprise',
-    sadness: '😢 Sadness',
-    disgust: '🤢 Disgust',
-    anger: '😡 Anger',
-    anticipation: '🎯 Anticipation',
-    neutral: '😐 Neutral'
+  const emotionColors = {
+    joy: 'from-yellow-400 to-yellow-600',
+    trust: 'from-blue-400 to-blue-600',
+    fear: 'from-purple-400 to-purple-600',
+    surprise: 'from-orange-400 to-orange-600',
+    sadness: 'from-indigo-400 to-indigo-600',
+    disgust: 'from-green-400 to-green-600',
+    anger: 'from-red-400 to-red-600',
+    anticipation: 'from-pink-400 to-pink-600'
   };
 
-  const totalEmotions = Object.values(trends).reduce((sum, count) => sum + count, 0);
+  useEffect(() => {
+    fetchVibesData();
+  }, []);
 
-  if (isLoading) {
+  const fetchVibesData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch emotion statistics
+      const { data: emotions, error: emotionsError } = await supabase
+        .from('threads')
+        .select('emotion')
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+
+      if (emotionsError) throw emotionsError;
+
+      // Process emotion stats
+      const emotionCounts = emotions.reduce((acc, { emotion }) => {
+        acc[emotion] = (acc[emotion] || 0) + 1;
+        return acc;
+      }, {});
+
+      const statsArray = Object.entries(emotionCounts)
+        .map(([emotion, count]) => ({ emotion, count }))
+        .sort((a, b) => b.count - a.count);
+
+      setEmotionStats(statsArray);
+
+      // Fetch trending hashtags
+      const { data: hashtags, error: hashtagsError } = await supabase
+        .from('threads')
+        .select('hashtags')
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .not('hashtags', 'is', null);
+
+      if (hashtagsError) throw hashtagsError;
+
+      // Process hashtags
+      const hashtagCounts = {};
+      hashtags.forEach(({ hashtags: tags }) => {
+        if (Array.isArray(tags)) {
+          tags.forEach(tag => {
+            hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
+          });
+        }
+      });
+
+      const trendingArray = Object.entries(hashtagCounts)
+        .map(([tag, count]) => ({ tag, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
+      setTrendingHashtags(trendingArray);
+
+      // Community insights
+      setCommunityInsights({
+        totalThreads: emotions.length,
+        mostActiveEmotion: statsArray[0]?.emotion || 'joy',
+        diversityScore: statsArray.length
+      });
+
+    } catch (error) {
+      console.error('Error fetching vibes data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="flex-1 bg-gray-900 text-white p-4">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
-        </div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 bg-gray-900 text-white pb-20">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-700">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-cyan-400 flex items-center">
-              <TrendingUp className="mr-2" size={24} />
-              Vibes
-            </h1>
-            <p className="text-gray-400 text-sm">Community emotion trends</p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setSelectedPeriod('24h')}
-              className={`px-3 py-1 rounded text-xs ${
-                selectedPeriod === '24h' 
-                  ? 'bg-cyan-500 text-white' 
-                  : 'bg-gray-700 text-gray-300'
-              }`}
-            >
-              24h
-            </button>
-            <button
-              onClick={() => setSelectedPeriod('7d')}
-              className={`px-3 py-1 rounded text-xs ${
-                selectedPeriod === '7d' 
-                  ? 'bg-cyan-500 text-white' 
-                  : 'bg-gray-700 text-gray-300'
-              }`}
-            >
-              7d
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="p-4 grid grid-cols-2 gap-4">
+    <div className="min-h-screen bg-gray-900 text-white">
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        {/* Header */}
         <motion.div
-          className="bg-gray-800 rounded-lg p-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          className="text-center mb-8"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Total Emotions</p>
-              <p className="text-2xl font-bold">{totalEmotions}</p>
-            </div>
-            <Heart className="text-cyan-400" size={24} />
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-2">
+            Community Vibes ✨
+          </h1>
+          <p className="text-gray-400">Discover the emotional pulse of TrueVibe</p>
+        </motion.div>
+
+        {/* Community Insights */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+        >
+          <div className="bg-gray-800 rounded-xl p-6 text-center">
+            <Calendar className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
+            <h3 className="text-2xl font-bold text-white">{communityInsights?.totalThreads || 0}</h3>
+            <p className="text-gray-400">Threads This Week</p>
+          </div>
+          
+          <div className="bg-gray-800 rounded-xl p-6 text-center">
+            <TrendingUp className="w-8 h-8 text-green-400 mx-auto mb-2" />
+            <h3 className="text-2xl font-bold text-white capitalize">
+              {communityInsights?.mostActiveEmotion || 'Joy'}
+            </h3>
+            <p className="text-gray-400">Trending Emotion</p>
+          </div>
+          
+          <div className="bg-gray-800 rounded-xl p-6 text-center">
+            <Users className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+            <h3 className="text-2xl font-bold text-white">{communityInsights?.diversityScore || 0}</h3>
+            <p className="text-gray-400">Emotion Diversity</p>
           </div>
         </motion.div>
 
+        {/* Emotion Distribution */}
         <motion.div
-          className="bg-gray-800 rounded-lg p-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="bg-gray-800 rounded-xl p-6 mb-8"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Active Emotions</p>
-              <p className="text-2xl font-bold">
-                {Object.values(trends).filter(count => count > 0).length}
-              </p>
-            </div>
-            <BarChart3 className="text-cyan-400" size={24} />
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Emotion Trends */}
-      <div className="p-4">
-        <h2 className="text-lg font-semibold mb-4 flex items-center">
-          <Filter className="mr-2" size={20} />
-          Emotion Breakdown
-        </h2>
-
-        <div className="space-y-3">
-          {Object.entries(emotionLabels).map(([emotion, label], index) => {
-            const percentage = trends[emotion] || 0;
-            const color = getEmotionColor(emotion);
-
-            return (
-              <motion.div
-                key={emotion}
-                className="bg-gray-800 rounded-lg p-4"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{label}</span>
-                  <span className="text-sm text-gray-400">
-                    {percentage.toFixed(1)}%
-                  </span>
-                </div>
-
-                <div className="w-full bg-gray-700 rounded-full h-2">
-                  <motion.div
-                    className="h-2 rounded-full"
-                    style={{ backgroundColor: color }}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${percentage}%` }}
-                    transition={{ duration: 0.8, delay: index * 0.1 }}
-                  />
-                </div>
-
-                {percentage > 0 && (
-                  <div className="mt-2 text-xs text-gray-400">
-                    {Math.round((percentage / 100) * totalEmotions)} expressions
-                  </div>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Insights */}
-      {totalEmotions > 0 && (
-        <div className="p-4">
-          <h2 className="text-lg font-semibold mb-4 flex items-center">
-            <Users className="mr-2" size={20} />
-            Community Insights
-          </h2>
-
-          <div className="bg-gray-800 rounded-lg p-4 space-y-3">
-            {(() => {
-              const topEmotion = Object.entries(trends).reduce((a, b) => 
-                trends[a[0]] > trends[b[0]] ? a : b
-              );
-              
-              if (topEmotion[1] > 0) {
-                return (
-                  <div className="flex items-center space-x-3">
-                    <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: getEmotionColor(topEmotion[0]) }}
-                    />
-                    <p className="text-sm">
-                      <span className="font-medium text-cyan-400">
-                        {emotionLabels[topEmotion[0]]}
-                      </span>
-                      {' '}is the dominant emotion in your community right now
-                    </p>
-                  </div>
-                );
-              }
+          <h2 className="text-xl font-bold mb-4">Emotion Distribution (7 days)</h2>
+          <div className="space-y-3">
+            {emotionStats.map(({ emotion, count }, index) => {
+              const maxCount = emotionStats[0]?.count || 1;
+              const percentage = (count / maxCount) * 100;
               
               return (
-                <p className="text-sm text-gray-400">
-                  Start expressing yourself to see community trends!
-                </p>
+                <div key={emotion} className="flex items-center gap-4">
+                  <div className="w-20 text-sm capitalize text-gray-300">{emotion}</div>
+                  <div className="flex-1 bg-gray-700 rounded-full h-4 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${percentage}%` }}
+                      transition={{ delay: 0.3 + index * 0.1, duration: 0.8 }}
+                      className={`h-full bg-gradient-to-r ${emotionColors[emotion] || 'from-gray-400 to-gray-600'}`}
+                    />
+                  </div>
+                  <div className="w-12 text-sm text-gray-400">{count}</div>
+                </div>
               );
-            })()}
+            })}
           </div>
-        </div>
-      )}
+        </motion.div>
+
+        {/* Trending Hashtags */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-gray-800 rounded-xl p-6"
+        >
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <Hash className="w-5 h-5 text-cyan-400" />
+            Trending Hashtags (24h)
+          </h2>
+          
+          {trendingHashtags.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              {trendingHashtags.map(({ tag, count }, index) => (
+                <motion.div
+                  key={tag}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4 + index * 0.05 }}
+                  className="bg-gray-700 rounded-lg p-3 text-center hover:bg-gray-600 transition-colors cursor-pointer"
+                >
+                  <div className="text-cyan-400 font-semibold">#{tag}</div>
+                  <div className="text-gray-400 text-sm">{count} uses</div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Hash className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p>No trending hashtags yet</p>
+            </div>
+          )}
+        </motion.div>
+      </div>
     </div>
   );
 };

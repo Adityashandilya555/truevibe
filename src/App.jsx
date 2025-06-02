@@ -25,17 +25,12 @@ function AppContent() {
 
   // If not authenticated, show auth flow or landing page
   if (!isAuthenticated) {
-    // Show AuthFlow for auth-specific routes
-    if (location.pathname === '/login' || location.pathname === '/signup') {
-      return <AuthFlow />;
-    }
-    
-    // Show landing page for other routes
     return (
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<AuthFlow />} />
         <Route path="/signup" element={<AuthFlow />} />
+        <Route path="/auth" element={<AuthFlow />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );

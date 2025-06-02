@@ -57,7 +57,7 @@ const AuthFlow = () => {
         if (data.user) {
           setSuccess('Account created successfully! Redirecting...');
           setTimeout(() => {
-            navigate('/threads');
+            navigate('/threads', { replace: true });
           }, 1500);
         }
       } else {
@@ -69,7 +69,7 @@ const AuthFlow = () => {
         if (data.user) {
           setSuccess('Welcome back! Redirecting...');
           setTimeout(() => {
-            navigate('/threads');
+            navigate('/threads', { replace: true });
           }, 1000);
         }
       }
