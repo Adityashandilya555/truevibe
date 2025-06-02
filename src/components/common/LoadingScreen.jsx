@@ -59,6 +59,7 @@ const LoadingScreen = ({
       role="alert"
       aria-live="assertive"
       aria-busy="true"
+      style={{ minHeight: fullScreen ? '100vh' : '200px' }}
     >
       <div className="flex flex-col items-center justify-center p-6 max-w-sm">
         {/* TrueVibe Logo/Text */}

@@ -16,21 +16,21 @@ const useAuthStore = create(
       user: null,
       profile: null,
       session: null,
-      
+
       // Loading states
       isLoading: false,
       isLoadingProfile: false,
-      
+
       // Error states
       error: null,
-      
+
       // Adjective selection for signup
       selectedAdjectives: {
         one: '',
         two: '',
         three: ''
       },
-      
+
       /**
        * Set the selected adjectives for user profile
        * @param {string} position - Which adjective to update (one, two, three)
@@ -44,7 +44,7 @@ const useAuthStore = create(
           }
         }));
       },
-      
+
       /**
        * Reset all selected adjectives
        */
@@ -57,21 +57,21 @@ const useAuthStore = create(
           }
         });
       },
-      
+
       /**
        * Initialize auth state from Supabase session
        */
       initializeAuth: async () => {
         set({ isLoading: true, error: null });
-        
+
         try {
           // Get current session
           const session = await sessionUtils.getCurrentSession();
-          
+
           if (session) {
             const user = session.user;
             set({ user, session });
-            
+
             // Fetch user profile
             await get().fetchUserProfile(user.id);
           }
@@ -82,19 +82,19 @@ const useAuthStore = create(
           set({ isLoading: false });
         }
       },
-      
+
       /**
        * Fetch user profile by ID
        * @param {string} userId - User ID to fetch profile for
        */
       fetchUserProfile: async (userId) => {
         set({ isLoadingProfile: true });
-        
+
         try {
           const { data, error } = await profileUtils.getProfileById(userId);
-          
+
           if (error) throw error;
-          
+
           if (data) {
             set({ profile: data });
           } else {
@@ -111,7 +111,7 @@ const useAuthStore = create(
           set({ isLoadingProfile: false });
         }
       },
-      
+
       /**
        * Create a new user profile
        * @param {string} userId - User ID
@@ -119,10 +119,10 @@ const useAuthStore = create(
        */
       createUserProfile: async (userId, email) => {
         const { selectedAdjectives } = get();
-        
+
         // Extract username from email (before the @)
         const username = email.split('@')[0];
-        
+
         const newProfile = {
           id: userId,
           username,
@@ -131,12 +131,12 @@ const useAuthStore = create(
           adjective_two: selectedAdjectives.two || 'Thoughtful',
           adjective_three: selectedAdjectives.three || 'Curious'
         };
-        
+
         try {
           const { data, error } = await profileUtils.createProfile(newProfile);
-          
+
           if (error) throw error;
-          
+
           set({ profile: data });
           get().resetAdjectives();
         } catch (error) {
@@ -144,7 +144,7 @@ const useAuthStore = create(
           set({ error: handleAuthError(error) });
         }
       },
-      
+
       /**
        * Update user profile
        * @param {Object} updates - Profile fields to update
@@ -152,14 +152,14 @@ const useAuthStore = create(
       updateProfile: async (updates) => {
         const { user } = get();
         if (!user) return;
-        
+
         set({ isLoadingProfile: true });
-        
+
         try {
           const { data, error } = await profileUtils.updateProfile(user.id, updates);
-          
+
           if (error) throw error;
-          
+
           set({ profile: data });
         } catch (error) {
           console.error('Error updating profile:', error);
@@ -168,7 +168,7 @@ const useAuthStore = create(
           set({ isLoadingProfile: false });
         }
       },
-      
+
       /**
        * Upload user avatar
        * @param {File} file - Image file to upload
@@ -176,14 +176,14 @@ const useAuthStore = create(
       uploadAvatar: async (file) => {
         const { user } = get();
         if (!user) return;
-        
+
         set({ isLoadingProfile: true });
-        
+
         try {
           const { data, error } = await profileUtils.uploadAvatar(user.id, file);
-          
+
           if (error) throw error;
-          
+
           // Update profile with new avatar URL
           await get().updateProfile({
             avatar_url: data.publicUrl
@@ -195,7 +195,7 @@ const useAuthStore = create(
           set({ isLoadingProfile: false });
         }
       },
-      
+
       /**
        * Sign up with email and password
        * @param {string} email - User email
@@ -203,22 +203,22 @@ const useAuthStore = create(
        */
       signUp: async (email, password) => {
         set({ isLoading: true, error: null });
-        
+
         try {
           const { data, error } = await supabase.auth.signUp({
             email,
             password
           });
-          
+
           if (error) throw error;
-          
+
           // If auto-confirmation is enabled
           if (data?.user && data?.session) {
             set({
               user: data.user,
               session: data.session
             });
-            
+
             // Create user profile with selected adjectives
             await get().createUserProfile(data.user.id, email);
           } else {
@@ -236,7 +236,7 @@ const useAuthStore = create(
           set({ isLoading: false });
         }
       },
-      
+
       /**
        * Sign in with email and password
        * @param {string} email - User email
@@ -244,20 +244,20 @@ const useAuthStore = create(
        */
       signIn: async (email, password) => {
         set({ isLoading: true, error: null });
-        
+
         try {
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password
           });
-          
+
           if (error) throw error;
-          
+
           set({
             user: data.user,
             session: data.session
           });
-          
+
           // Fetch or create user profile
           await get().fetchUserProfile(data.user.id);
         } catch (error) {
@@ -267,18 +267,18 @@ const useAuthStore = create(
           set({ isLoading: false });
         }
       },
-      
+
       /**
        * Sign out current user
        */
       signOut: async () => {
         set({ isLoading: true, error: null });
-        
+
         try {
           const { error } = await supabase.auth.signOut();
-          
+
           if (error) throw error;
-          
+
           set({
             user: null,
             session: null,
@@ -291,13 +291,27 @@ const useAuthStore = create(
           set({ isLoading: false });
         }
       },
-      
+
       /**
        * Clear any error messages
        */
       clearError: () => {
         set({ error: null });
-      }
+      },
+
+  checkAuth: async () => {
+    try {
+      set({ loading: true, error: null });
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      set({ user, loading: false });
+      return user;
+    } catch (error) {
+      console.error('Auth check error:', error);
+      set({ error: error.message, loading: false, user: null });
+      return null;
+    }
+  },
     }),
     {
       name: 'truevibe-auth-storage',

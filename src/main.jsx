@@ -96,7 +96,8 @@ if ('PerformanceObserver' in window) {
     })
     lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] })
     
-    // Monitor Cumulative Layout Shift (CLS)
+    // Monitor Cumulative Layout Shift (CLS) - throttled
+    let lastCLSLog = 0;
     const clsObserver = new PerformanceObserver((list) => {
       let clsValue = 0
       for (const entry of list.getEntries()) {
@@ -104,8 +105,11 @@ if ('PerformanceObserver' in window) {
           clsValue += entry.value
         }
       }
-      if (clsValue > 0) {
+      // Only log CLS every 2 seconds to reduce console spam
+      const now = Date.now();
+      if (clsValue > 0.1 && now - lastCLSLog > 2000) {
         console.log('TrueVibe CLS:', Math.round(clsValue * 1000) / 1000)
+        lastCLSLog = now;
       }
     })
     clsObserver.observe({ entryTypes: ['layout-shift'] })
