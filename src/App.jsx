@@ -23,18 +23,18 @@ function AppContent() {
     return <LoadingScreen message="Authenticating..." emotion="trust" />;
   }
 
-  // If not authenticated, show auth flow or landing page
-  if (!isAuthenticated) {
-    return (
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<AuthFlow />} />
-        <Route path="/signup" element={<AuthFlow />} />
-        <Route path="/auth" element={<AuthFlow />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    );
-  }
+  // TEMPORARY: Skip authentication check, allow direct access
+  // if (!isAuthenticated) {
+  //   return (
+  //     <Routes>
+  //       <Route path="/" element={<LandingPage />} />
+  //       <Route path="/login" element={<AuthFlow />} />
+  //       <Route path="/signup" element={<AuthFlow />} />
+  //       <Route path="/auth" element={<AuthFlow />} />
+  //       <Route path="*" element={<Navigate to="/" replace />} />
+  //     </Routes>
+  //   );
+  // }
 
   // Authenticated user layout
   return (

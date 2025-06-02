@@ -8,6 +8,26 @@ const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // TEMPORARY BYPASS - Set a mock user to skip authentication
+    const mockUser = {
+      id: 'mock-user-123',
+      email: 'demo@truevibe.com',
+      user_metadata: {
+        adjectives: ['Creative', 'Empathetic', 'Curious']
+      }
+    };
+    
+    const mockSession = {
+      user: mockUser,
+      access_token: 'mock-token'
+    };
+
+    // Set mock auth immediately
+    setAuth(mockUser, mockSession);
+    setLoading(false);
+
+    // Comment out Supabase auth for now
+    /*
     // Get initial session
     const getSession = async () => {
       try {
@@ -42,6 +62,7 @@ const useAuth = () => {
     );
 
     return () => subscription.unsubscribe();
+    */
   }, [setAuth, clearAuth]);
 
   const signUp = async (email, password, adjectives) => {

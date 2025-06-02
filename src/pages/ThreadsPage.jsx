@@ -1,155 +1,185 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Plus, MessageCircle, Heart, Share2, Bookmark } from 'lucide-react';
 import ThreadComposer from '../components/threads/ThreadComposer';
-import ThreadFeed from '../components/threads/ThreadFeed';
-import { supabase } from '../services/supabase';
-import useAuth from '../hooks/useAuth';
+import ReactionSystem from '../components/threads/ReactionSystem';
 
 const ThreadsPage = () => {
-  const { user } = useAuth();
-  const [threads, setThreads] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState('all');
-
-  const emotionFilters = [
-    { key: 'all', label: 'All', color: 'bg-gray-600' },
-    { key: 'joy', label: 'Joy', color: 'bg-yellow-500' },
-    { key: 'trust', label: 'Trust', color: 'bg-blue-500' },
-    { key: 'fear', label: 'Fear', color: 'bg-purple-500' },
-    { key: 'surprise', label: 'Surprise', color: 'bg-orange-500' },
-    { key: 'sadness', label: 'Sadness', color: 'bg-indigo-500' },
-    { key: 'disgust', label: 'Disgust', color: 'bg-green-500' },
-    { key: 'anger', label: 'Anger', color: 'bg-red-500' },
-    { key: 'anticipation', label: 'Anticipation', color: 'bg-pink-500' }
-  ];
-
-  useEffect(() => {
-    fetchThreads();
-
-    // Subscribe to real-time thread updates
-    const subscription = supabase
-      .channel('threads')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'threads'
-      }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          setThreads(prev => [payload.new, ...prev]);
-        } else if (payload.eventType === 'UPDATE') {
-          setThreads(prev => prev.map(thread => 
-            thread.id === payload.new.id ? payload.new : thread
-          ));
-        }
-      })
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [activeFilter]);
-
-  const fetchThreads = async () => {
-    try {
-      setLoading(true);
-      let query = supabase
-        .from('threads')
-        .select(`
-          *,
-          user_profiles:user_id (
-            name,
-            avatar_url,
-            adjective_one,
-            adjective_two,
-            adjective_three
-          )
-        `)
-        .eq('visibility', 'public')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (activeFilter !== 'all') {
-        query = query.eq('emotion', activeFilter);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setThreads(data || []);
-    } catch (error) {
-      console.error('Error fetching threads:', error);
-    } finally {
-      setLoading(false);
+  const [showComposer, setShowComposer] = useState(false);
+  const [threads, setThreads] = useState([
+    {
+      id: 1,
+      content: "Just started using TrueVibe! Loving the emotion-aware features 🎉",
+      emotion: "joy",
+      confidence: 0.85,
+      author: {
+        name: "Demo User",
+        adjectives: ["Creative", "Empathetic", "Curious"]
+      },
+      reactions: {
+        resonate: 12,
+        support: 8,
+        learn: 5,
+        challenge: 2,
+        amplify: 15
+      },
+      timestamp: "2 hours ago"
+    },
+    {
+      id: 2,
+      content: "Working on a new project and feeling excited about the possibilities! #innovation #creativity",
+      emotion: "anticipation",
+      confidence: 0.78,
+      author: {
+        name: "Tech Explorer",
+        adjectives: ["Innovative", "Ambitious", "Thoughtful"]
+      },
+      reactions: {
+        resonate: 25,
+        support: 18,
+        learn: 12,
+        challenge: 3,
+        amplify: 22
+      },
+      timestamp: "5 hours ago"
     }
+  ]);
+
+  const emotionColors = {
+    joy: '#FFD700',
+    sadness: '#4169E1',
+    anger: '#FF4500',
+    fear: '#800080',
+    surprise: '#FF69B4',
+    disgust: '#228B22',
+    trust: '#4169E1',
+    anticipation: '#FFA500'
   };
 
-  const handleNewThread = (newThread) => {
-    setThreads(prev => [newThread, ...prev]);
+  const handleNewThread = (threadData) => {
+    const newThread = {
+      id: Date.now(),
+      ...threadData,
+      author: {
+        name: "You",
+        adjectives: ["Creative", "Empathetic", "Curious"]
+      },
+      reactions: {
+        resonate: 0,
+        support: 0,
+        learn: 0,
+        challenge: 0,
+        amplify: 0
+      },
+      timestamp: "now"
+    };
+    setThreads([newThread, ...threads]);
+    setShowComposer(false);
   };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Thread Composer */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <ThreadComposer onThreadCreated={handleNewThread} />
-        </motion.div>
-
-        {/* Emotion Filters */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="mb-6"
-        >
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {emotionFilters.map((filter) => (
-              <button
-                key={filter.key}
-                onClick={() => setActiveFilter(filter.key)}
-                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  activeFilter === filter.key
-                    ? `${filter.color} text-white`
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Thread Feed */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          <ThreadFeed threads={threads} loading={loading} />
-        </motion.div>
-
-        {/* Empty State */}
-        {!loading && threads.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-12"
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 p-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-cyan-400">💬 Threads</h1>
+          <button
+            onClick={() => setShowComposer(true)}
+            className="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-full flex items-center gap-2 transition-colors"
           >
-            <div className="text-6xl mb-4">💬</div>
-            <h3 className="text-xl font-semibold text-gray-300 mb-2">
-              {activeFilter === 'all' ? 'No threads yet' : `No ${activeFilter} threads`}
-            </h3>
-            <p className="text-gray-500">
-              {activeFilter === 'all' 
-                ? 'Be the first to share your thoughts!'
-                : `Try switching to "All" or create a ${activeFilter} thread`
-              }
-            </p>
+            <Plus className="w-4 h-4" />
+            New Thread
+          </button>
+        </div>
+      </div>
+
+      {/* Thread Composer Modal */}
+      {showComposer && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md">
+            <ThreadComposer
+              onSubmit={handleNewThread}
+              onCancel={() => setShowComposer(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Threads Feed */}
+      <div className="p-4 space-y-4">
+        {threads.map((thread) => (
+          <motion.div
+            key={thread.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gray-800 rounded-xl p-6 border-l-4"
+            style={{ borderLeftColor: emotionColors[thread.emotion] || '#4dd0e1' }}
+          >
+            {/* Author Info */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center text-sm font-bold">
+                {thread.author.name.charAt(0)}
+              </div>
+              <div>
+                <p className="font-semibold">{thread.author.name}</p>
+                <p className="text-sm text-gray-400">
+                  {thread.author.adjectives.join(' • ')}
+                </p>
+              </div>
+              <span className="ml-auto text-sm text-gray-500">{thread.timestamp}</span>
+            </div>
+
+            {/* Content */}
+            <p className="text-gray-100 mb-4 leading-relaxed">{thread.content}</p>
+
+            {/* Emotion Indicator */}
+            <div className="flex items-center gap-2 mb-4">
+              <div 
+                className="px-3 py-1 rounded-full text-xs font-medium"
+                style={{ 
+                  backgroundColor: `${emotionColors[thread.emotion]}20`,
+                  color: emotionColors[thread.emotion]
+                }}
+              >
+                {thread.emotion} ({Math.round(thread.confidence * 100)}%)
+              </div>
+            </div>
+
+            {/* Reactions */}
+            <ReactionSystem 
+              threadId={thread.id}
+              reactions={thread.reactions}
+              onReaction={(type) => {
+                setThreads(threads.map(t => 
+                  t.id === thread.id 
+                    ? { ...t, reactions: { ...t.reactions, [type]: t.reactions[type] + 1 } }
+                    : t
+                ));
+              }}
+            />
+
+            {/* Actions */}
+            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-700">
+              <button className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors">
+                <MessageCircle className="w-4 h-4" />
+                Reply
+              </button>
+              <button className="flex items-center gap-2 text-gray-400 hover:text-red-400 transition-colors">
+                <Heart className="w-4 h-4" />
+                Like
+              </button>
+              <button className="flex items-center gap-2 text-gray-400 hover:text-green-400 transition-colors">
+                <Share2 className="w-4 h-4" />
+                Share
+              </button>
+              <button className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 transition-colors">
+                <Bookmark className="w-4 h-4" />
+                Save
+              </button>
+            </div>
           </motion.div>
-        )}
+        ))}
       </div>
     </div>
   );
