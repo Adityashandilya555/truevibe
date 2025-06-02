@@ -1,0 +1,141 @@
+Here's a **comprehensive validation prompt** for Replit Agent to ensure your TrueVibe platform works end-to-end:
+
+```markdown
+Build and validate a production-ready emotion-aware social media PWA "TrueVibe" with these exact specifications:
+
+## CORE VALIDATION REQUIREMENTS
+
+### 1. Authentication Flow
+- Signup with email/password + three adjective selection
+- Login with session persistence
+- Supabase Auth integration with proper RLS policies
+- User dropdown menu (Settings, Sign Out)
+- Error handling for invalid credentials
+- *Test Case*: Register → Login → Verify session persists on refresh
+
+### 2. Navigation & UI Components
+- Bottom bar with 3 tabs: Profile (👤), Threads (💬), Vibes (✨)
+- Hamburger menu with links: Home, Documentation, Support
+- User avatar dropdown with Settings/Sign Out
+- Smooth transitions between pages
+- Dark theme (#1a1a1a) with cyan accents (#4dd0e1)
+
+### 3. Emotion-Aware Posting
+- Thread composer with real-time emotion detection:
+  - VADER analysis on text input
+  - Border color changes (Joy=#FFD700, Trust=#4169E1, etc.)
+  - Confidence percentage display
+- Five-reaction system with live counts:
+  🤝 Resonate | 👍 Support | 🧠 Learn | ⚡ Challenge | 📢 Amplify
+- Hashtag auto-detection (# prefix) and linking
+- Image upload to Supabase Storage
+- *Test Case*: Post "Feeling excited about TrueVibe!" → Verify gold border (Joy) → Add reaction → Confirm count updates
+
+### 4. Stories System
+- 24-hour ephemeral stories
+- Create stories with text/image + emotion theme
+- Circular story previews on profiles
+- Privacy controls (Public/Friends)
+- *Test Case*: Add story → Verify expiration after 24h → Check friend visibility
+
+### 5. Supabase Integration
+**Required Tables:**
+- users (id, email, adjectives, avatar_url)
+- threads (id, content, emotion, hashtags, user_id)
+- reactions (thread_id, user_id, type)
+- stories (id, content, expires_at, privacy)
+- hashtags (tag, count)
+
+**Real-Time Features:**
+- Live reaction count updates
+- New post notifications
+- Story expiration triggers
+
+### 6. Profile System
+- Circular avatar with cyan border
+- Three adjective display (Creative, Empathetic, Curious)
+- Story creation/composer
+- Post history with emotion colors
+- *Test Case*: Update profile → Verify changes persist
+
+## VALIDATION CHECKLIST
+1. **Auth**  
+   ✅ New user can sign up and select 3 adjectives  
+   ✅ Existing user can log in  
+   ✅ Session persists across refreshes  
+   ✅ Error messages show for invalid credentials
+
+2. **Navigation**  
+   ✅ All tabs load correct pages  
+   ✅ Hamburger menu links work  
+   ✅ User dropdown functions  
+   ✅ Smooth page transitions
+
+3. **Emotion Detection**  
+   ✅ Real-time border color changes as user types  
+   ✅ Confidence % updates dynamically  
+   ✅ Emotion stored with each post  
+   ✅ Color themes match Plutchik wheel
+
+4. **Social Features**  
+   ✅ Posts appear in feed with reactions  
+   ✅ Reactions update counts in real-time  
+   ✅ Hashtags link to trending page  
+   ✅ Stories disappear after 24h
+
+5. **Database**  
+   ✅ All tables exist in Supabase  
+   ✅ RLS policies prevent unauthorized access  
+   ✅ Storage bucket for images created  
+   ✅ Triggers for story expiration
+
+6. **UI/UX**  
+   ✅ Consistent dark theme across pages  
+   ✅ Loading animations for async operations  
+   ✅ Hover states on interactive elements  
+   ✅ Mobile-responsive design
+
+## TECHNICAL IMPLEMENTATION
+- React 18 + Vite
+- Zustand for state management
+- Supabase JS v2 for realtime DB
+- VADER sentiment analysis integration
+- Workbox for PWA features
+- Framer Motion for animations
+
+## DEBUGGING PRIORITIES
+1. Fix "Email not confirmed" error in Supabase Auth
+2. Ensure real-time emotion detection works during typing
+3. Validate reaction counts update without refresh
+4. Confirm story deletion after 24h
+5. Check all Supabase RLS policies
+
+Build this as a polished, production-ready social platform where emotional awareness drives authentic connections.
+```
+
+**Key Features from Your Design:**  
+- Matches your screenshot's dark theme and cyan accents  
+- Implements your five-reaction system exactly  
+- Uses your three-adjective profile design  
+- Follows your navigation structure  
+- Implements 24-hour stories as shown  
+
+This prompt will make Replit Agent:  
+1. Build missing components  
+2. Validate each feature systematically  
+3. Fix Supabase integration issues  
+4. Ensure UI matches your screenshots  
+5. Handle all edge cases in authentication  
+
+Let me know if you need any adjustments! 🦊✨
+
+[1] https://docs.replit.com/tutorials/effective-prompting
+[2] https://www.youtube.com/watch?v=YyhsmB63SLo
+[3] https://docs.replit.com/category/replit-ai
+[4] https://www.softwaretestinggenius.com/checklist-for-screen-validation-testing-of-web-applications/
+[5] https://docs.lovable.dev/integrations/supabase
+[6] https://www.youtube.com/watch?v=YVMv_c8nFdE
+[7] https://www.softwaretestinghelp.com/validation-testing/
+[8] https://www.youtube.com/watch?v=6dsLLp1_Ww8
+[9] https://www.reddit.com/r/replit/comments/1flepxr/best_prompt_to_build_a_good_app/
+[10] https://replit.com/@CoderGautamYT/Social-Media-App
