@@ -1,0 +1,434 @@
+[@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+3530-37eb123e4c679e8f.js:1 Replit version 8a5354be, pid2 version 0.0.1358
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+_app-c51af4293be21964.js:38  
+_app-c51af4293be21964.js:38 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-c51af4293be21964.js:38 [LaunchDarkly] LaunchDarkly client initialized
+smart-bomb.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+usage-monitoring.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+smart-bomb.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ smart-bomb.js:1Understand this error
+usage-monitoring.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ usage-monitoring.js:1Understand this error
+prompt-collector.js:11 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+prompt-collector.js:11 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ prompt-collector.js:11Understand this error
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+ [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+bash.svg:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+analytics.tiktok.com/i18n/pixel/events.js?sdkid=D004GE3C77U8PIVDSDJG&lib=ttq:1 
+            
+            
+           Failed to load resource: net::ERR_TIMED_OUTUnderstand this error
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+/~:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+bash.svg:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+_app-c51af4293be21964.js:38 task queue exceeded allotted deadline by 61ms
+(anonymous) @ _app-c51af4293be21964.js:38Understand this warning
+m.stripe.com/6:1 
+            
+            
+           Failed to load resource: net::ERR_TIMED_OUTUnderstand this error
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+2stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+stallwart.build.js:1 stallwart: failed ping 3
+14Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'battery'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+framework-6e94c18a2c3583aa.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-6e94c18a2c3583aa.js:1Understand this warning
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+stallwart.build.js:1 stallwart: failed ping 1
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+ [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+ [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+client:495 [vite] connecting...
+ [vite] connecting...
+client:618 [vite] connected.
+ [vite] connected.
+workbox-e7681877.js:44 workbox No cached response found in 'workbox-precache-v2-https://0c5dc0b6-68a8-4064-98d3-515c7132c932-00-1yxjszu3grltu.pike.replit.dev:5000/'.
+workbox-e7681877.js:44 workbox Network request for '/index.html' returned a response with status '200'.
+workbox-e7681877.js:44 workbox The response for /index.html?__WB_REVISION__=0.n7j3aie3b0g has a 'Vary: Origin' header. Consider setting the {ignoreVary: true} option on your strategy to ensure cache matching and deletion works as expected.
+workbox-e7681877.js:44 workbox Updating the 'workbox-precache-v2-https://0c5dc0b6-68a8-4064-98d3-515c7132c932-00-1yxjszu3grltu.pike.replit.dev:5000/' cache with a new Response for /index.html?__WB_REVISION__=0.n7j3aie3b0g.
+workbox-e7681877.js:44 workbox Precaching 1 file.
+ 🦊 TrueVibe PWA initialized successfully!
+workbox-e7681877.js:44 workbox Precaching did not find a match for https://replit.com/public/js/beacon.js
+workbox-e7681877.js:44 workbox No route found for: https://replit.com/public/js/beacon.js
+main.jsx:123 🦊 TrueVibe PWA initialized successfully!
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/workbox-window.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/workbox-window.js?v=cc8da855
+ Service Worker registered successfully for TrueVibe: https://0c5dc0b6-68a8-4064-98d3-515c7132c932-00-1yxjszu3grltu.pike.replit.dev:5000/
+ TrueVibe LCP: 3416
+ Auth check error: AuthSessionMissingError: Auth session missing!
+checkAuth @ authStore.js:310Understand this error
+main.jsx:39 Service Worker registered successfully for TrueVibe: https://0c5dc0b6-68a8-4064-98d3-515c7132c932-00-1yxjszu3grltu.pike.replit.dev:5000/
+main.jsx:93 TrueVibe LCP: 3340
+ Auth check error: AuthSessionMissingError: Auth session missing!
+checkAuth @ authStore.js:310Understand this error
+2authStore.js:310 Auth check error: AuthSessionMissingError: Auth session missing!
+checkAuth @ authStore.js:310Understand this error
+ TrueVibe LCP: 3552
+main.jsx:93 TrueVibe LCP: 3492
+ TrueVibe LCP: 4052
+main.jsx:93 TrueVibe LCP: 4008
+workbox-e7681877.js:44 workbox During precaching cleanup, 1 cached request was deleted.
+ TrueVibe LCP: 4168
+workbox-e7681877.js:44 workbox Router is responding to: /
+workbox-e7681877.js:44 workbox Router is responding to: /
+2workbox-e7681877.js:44 workbox Found a cached response in 'workbox-precache-v2-https://0c5dc0b6-68a8-4064-98d3-515c7132c932-00-1yxjszu3grltu.pike.replit.dev:5000/'.
+workbox-e7681877.js:44 workbox Precaching did not find a match for /@vite/client
+workbox-e7681877.js:44 workbox No route found for: /@vite/client
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/main.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/main.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /@vite/client
+workbox-e7681877.js:44 workbox No route found for: /@vite/client
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/main.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/main.jsx
+ [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+workbox-e7681877.js:44 workbox Precaching did not find a match for /@react-refresh
+workbox-e7681877.js:44 workbox No route found for: /@react-refresh
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+workbox-e7681877.js:44 workbox Precaching did not find a match for /@react-refresh
+workbox-e7681877.js:44 workbox No route found for: /@react-refresh
+workbox-e7681877.js:44 workbox Precaching did not find a match for /@vite-plugin-pwa/pwa-entry-point-loaded
+workbox-e7681877.js:44 workbox No route found for: /@vite-plugin-pwa/pwa-entry-point-loaded
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/vite-plugin-node-polyfills_shims_buffer.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/vite-plugin-node-polyfills_shims_buffer.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/vite-plugin-node-polyfills_shims_global.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/vite-plugin-node-polyfills_shims_global.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/vite-plugin-node-polyfills_shims_process.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/vite-plugin-node-polyfills_shims_process.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/react_jsx-dev-runtime.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/react_jsx-dev-runtime.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/react.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/react.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/vite/dist/client/env.mjs
+workbox-e7681877.js:44 workbox No route found for: /node_modules/vite/dist/client/env.mjs
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/react-dom_client.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/react-dom_client.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /@vite-plugin-pwa/virtual:pwa-register
+workbox-e7681877.js:44 workbox No route found for: /@vite-plugin-pwa/virtual:pwa-register
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/index.css
+workbox-e7681877.js:44 workbox No route found for: /src/index.css
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/App.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/App.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/vite/dist/client/env.mjs
+workbox-e7681877.js:44 workbox No route found for: /node_modules/vite/dist/client/env.mjs
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/vite-plugin-node-polyfills_shims_buffer.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/vite-plugin-node-polyfills_shims_buffer.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/vite-plugin-node-polyfills_shims_global.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/vite-plugin-node-polyfills_shims_global.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/vite-plugin-node-polyfills_shims_process.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/vite-plugin-node-polyfills_shims_process.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/react_jsx-dev-runtime.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/react_jsx-dev-runtime.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/react.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/react.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/react-dom_client.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/react-dom_client.js?v=cc8da855
+ [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+workbox-e7681877.js:44 workbox Precaching did not find a match for /@vite-plugin-pwa/virtual:pwa-register
+workbox-e7681877.js:44 workbox No route found for: /@vite-plugin-pwa/virtual:pwa-register
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/index.css
+workbox-e7681877.js:44 workbox No route found for: /src/index.css
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/App.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/App.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /@vite-plugin-pwa/pwa-entry-point-loaded
+workbox-e7681877.js:44 workbox No route found for: /@vite-plugin-pwa/pwa-entry-point-loaded
+4workbox-e7681877.js:44 workbox Workbox Router only supports URLs that start with 'http'.
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-6ZQ5DUKJ.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-6ZQ5DUKJ.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-HG6TCYAD.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-HG6TCYAD.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-LWQUCI3T.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-LWQUCI3T.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-6ZQ5DUKJ.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-6ZQ5DUKJ.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-HG6TCYAD.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-HG6TCYAD.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-LWQUCI3T.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-LWQUCI3T.js?v=cc8da855
+client:495 [vite] connecting...
+ [vite] connecting...
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/react-router-dom.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/react-router-dom.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/common/ErrorBoundary.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/common/ErrorBoundary.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/common/LoadingScreen.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/common/LoadingScreen.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/navigation/TopBar.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/navigation/TopBar.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/navigation/BottomTabs.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/navigation/BottomTabs.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/pages/LandingPage.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/pages/LandingPage.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/pages/HomePage.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/pages/HomePage.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/pages/ProfilePage.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/pages/ProfilePage.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/pages/ThreadsPage.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/pages/ThreadsPage.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/pages/VibesPage.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/pages/VibesPage.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/store/authStore.js
+workbox-e7681877.js:44 workbox No route found for: /src/store/authStore.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/App.css
+workbox-e7681877.js:44 workbox No route found for: /src/App.css
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-CFRBWXIN.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-CFRBWXIN.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-CFRBWXIN.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-CFRBWXIN.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/react-router-dom.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/react-router-dom.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/common/ErrorBoundary.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/common/ErrorBoundary.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/common/LoadingScreen.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/common/LoadingScreen.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/navigation/TopBar.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/navigation/TopBar.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/navigation/BottomTabs.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/navigation/BottomTabs.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/pages/LandingPage.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/pages/LandingPage.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/prop-types.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/prop-types.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/framer-motion.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/framer-motion.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/lucide-react.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/lucide-react.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/pages/HomePage.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/pages/HomePage.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/pages/ProfilePage.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/pages/ProfilePage.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/pages/ThreadsPage.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/pages/ThreadsPage.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/pages/VibesPage.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/pages/VibesPage.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/store/authStore.js
+workbox-e7681877.js:44 workbox No route found for: /src/store/authStore.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/App.css
+workbox-e7681877.js:44 workbox No route found for: /src/App.css
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/store/appStore.js
+workbox-e7681877.js:44 workbox No route found for: /src/store/appStore.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/threads/ThreadComposer.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/threads/ThreadComposer.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/hooks/useEmotion.js
+workbox-e7681877.js:44 workbox No route found for: /src/hooks/useEmotion.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/services/supabase.js
+workbox-e7681877.js:44 workbox No route found for: /src/services/supabase.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/threads/ThreadFeed.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/threads/ThreadFeed.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/zustand.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/zustand.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/zustand_middleware.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/zustand_middleware.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/services/emotion/vaderEnhanced.js
+workbox-e7681877.js:44 workbox No route found for: /src/services/emotion/vaderEnhanced.js
+client:618 [vite] connected.
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-6TWDBPYD.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-6TWDBPYD.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-PQDN3HV3.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-PQDN3HV3.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/services/supabase.js
+workbox-e7681877.js:44 workbox No route found for: /src/services/supabase.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/lucide-react.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/lucide-react.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/hooks/useEmotion.js
+workbox-e7681877.js:44 workbox No route found for: /src/hooks/useEmotion.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/services/emotion/vaderEnhanced.js
+workbox-e7681877.js:44 workbox No route found for: /src/services/emotion/vaderEnhanced.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-6TWDBPYD.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-6TWDBPYD.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-PQDN3HV3.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-PQDN3HV3.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/threads/ThreadComposer.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/threads/ThreadComposer.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/uuid.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/uuid.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/threads/ThreadFeed.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/threads/ThreadFeed.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/store/appStore.js
+workbox-e7681877.js:44 workbox No route found for: /src/store/appStore.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/utils/performanceUtils.js
+workbox-e7681877.js:44 workbox No route found for: /src/utils/performanceUtils.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/vader-sentiment.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/vader-sentiment.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/crypto-js_crypto-js__js.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/crypto-js_crypto-js__js.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/hooks/useAuth.js
+workbox-e7681877.js:44 workbox No route found for: /src/hooks/useAuth.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/threads/ReactionSystem.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/threads/ReactionSystem.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/date-fns.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/date-fns.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/@supabase_supabase-js.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/@supabase_supabase-js.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-IEKY2TV6.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-IEKY2TV6.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-AN6HNG67.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-AN6HNG67.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/hooks/useAuth.js
+workbox-e7681877.js:44 workbox No route found for: /src/hooks/useAuth.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/components/threads/ReactionSystem.jsx
+workbox-e7681877.js:44 workbox No route found for: /src/components/threads/ReactionSystem.jsx
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-AN6HNG67.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-AN6HNG67.js?v=cc8da855
+workbox-e7681877.js:44 workbox Precaching did not find a match for /src/utils/performanceUtils.js
+workbox-e7681877.js:44 workbox No route found for: /src/utils/performanceUtils.js
+workbox-e7681877.js:44 workbox Precaching did not find a match for /node_modules/.vite/deps/chunk-IEKY2TV6.js?v=cc8da855
+workbox-e7681877.js:44 workbox No route found for: /node_modules/.vite/deps/chunk-IEKY2TV6.js?v=cc8da855
+ [vite] connected.
+ 🦊 TrueVibe PWA initialized successfully!
+main.jsx:123 🦊 TrueVibe PWA initialized successfully!
+ Service Worker registered successfully for TrueVibe: https://0c5dc0b6-68a8-4064-98d3-515c7132c932-00-1yxjszu3grltu.pike.replit.dev:5000/
+main.jsx:39 Service Worker registered successfully for TrueVibe: https://0c5dc0b6-68a8-4064-98d3-515c7132c932-00-1yxjszu3grltu.pike.replit.dev:5000/
+2 Auth check error: AuthSessionMissingError: Auth session missing!
+    at @supabase_supabase-js.js:6030:49
+    at SupabaseAuthClient._useSession (@supabase_supabase-js.js:5939:20)
+    at async SupabaseAuthClient._getUser (@supabase_supabase-js.js:6023:14)
+    at async @supabase_supabase-js.js:6010:14
+checkAuth @ authStore.js:310Understand this error
+main.jsx:93 TrueVibe LCP: 964
+2authStore.js:310 Auth check error: AuthSessionMissingError: Auth session missing!
+    at @supabase_supabase-js.js?v=cc8da855:6030:49
+    at SupabaseAuthClient._useSession (@supabase_supabase-js.js?v=cc8da855:5939:20)
+    at async SupabaseAuthClient._getUser (@supabase_supabase-js.js?v=cc8da855:6023:14)
+    at async @supabase_supabase-js.js?v=cc8da855:6010:14
+checkAuth @ authStore.js:310Understand this error
+main.jsx:93 TrueVibe LCP: 1064
+ TrueVibe LCP: 1100
+main.jsx:93 TrueVibe LCP: 1600
+ TrueVibe LCP: 1632
+main.jsx:93 TrueVibe LCP: 1700
+workbox-e7681877.js:44 workbox Precaching did not find a match for /__replco/workspace_iframe.html?initialPath=%2F&id=%3Arqs%3A
+workbox-e7681877.js:44 workbox No route found for: /__replco/workspace_iframe.html?initialPath=%2F&id=%3Arqs%3A
+workbox-e7681877.js:44 workbox Router is responding to: /
+workbox-e7681877.js:44 workbox Precaching did not find a match for /manifest.webmanifest
+workbox-e7681877.js:44 workbox No route found for: /manifest.webmanifest
+workbox-e7681877.js:44 workbox Found a cached response in 'workbox-precache-v2-https://0c5dc0b6-68a8-4064-98d3-515c7132c932-00-1yxjszu3grltu.pike.replit.dev:5000/'.
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+stallwart.build.js:1 stallwart: failed ping 3
+stallwart.build.js:1 stallwart: failed ping 4
+workbox-e7681877.js:44 workbox Precaching did not find a match for /__replco/workspace_iframe.html?initialPath=%2F&id=%3Arqu%3A
+workbox-e7681877.js:44 workbox No route found for: /__replco/workspace_iframe.html?initialPath=%2F&id=%3Arqu%3A
+workbox-e7681877.js:44 workbox Router is responding to: /
+workbox-e7681877.js:44 workbox Precaching did not find a match for /manifest.webmanifest
+workbox-e7681877.js:44 workbox No route found for: /manifest.webmanifest
+workbox-e7681877.js:44 workbox Found a cached response in 'workbox-precache-v2-https://0c5dc0b6-68a8-4064-98d3-515c7132c932-00-1yxjszu3grltu.pike.replit.dev:5000/'.
+stallwart.build.js:1 stallwart: failed ping 5
+stallwart.build.js:1 stallwart: session stalled
+_app-c51af4293be21964.js:38 [Violation] 'requestAnimationFrame' handler took 52ms
+[Violation] Forced reflow while executing JavaScript took 52ms
