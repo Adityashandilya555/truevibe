@@ -105,9 +105,9 @@ if ('PerformanceObserver' in window) {
           clsValue += entry.value
         }
       }
-      // Only log CLS every 2 seconds to reduce console spam
+      // Only log CLS every 10 seconds and only significant shifts
       const now = Date.now();
-      if (clsValue > 0.1 && now - lastCLSLog > 2000) {
+      if (clsValue > 0.25 && now - lastCLSLog > 10000) {
         console.log('TrueVibe CLS:', Math.round(clsValue * 1000) / 1000)
         lastCLSLog = now;
       }
