@@ -12,10 +12,7 @@ export const authService = {
    */
   signInWithGmail: async () => {
     try {
-      // Use the Supabase callback URL that matches Google Console configuration
-      const redirectUrl = 'https://gfzuisdpkdshzqxoissu.supabase.co/auth/v1/callback';
-      
-      console.log('Initiating OAuth with redirect URL:', redirectUrl);
+      console.log('Starting Gmail login...');
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -24,8 +21,7 @@ export const authService = {
           queryParams: {
             access_type: 'offline',
             prompt: 'select_account',
-          },
-          skipBrowserRedirect: false
+          }
         }
       });
 
@@ -34,6 +30,7 @@ export const authService = {
         throw error;
       }
       
+      console.log('Gmail login initiated successfully');
       return { data, error: null };
     } catch (error) {
       console.error('Gmail OAuth error:', error);
