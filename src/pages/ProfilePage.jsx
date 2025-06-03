@@ -1,221 +1,156 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Edit3, Heart, MessageSquare, Calendar, Sparkles } from 'lucide-react';
 import TopBar from '../components/navigation/TopBar';
 import BottomTabs from '../components/navigation/BottomTabs';
+import ProfileHeader from '../components/profile/ProfileHeader';
+import StoriesCarousel from '../components/profile/StoriesCarousel';
 
-export default function ProfilePage() {
+const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('threads');
 
-  const profileData = {
-    name: "Alex Chen",
-    username: "@alexchen",
-    bio: "Digital creator passionate about authentic connections 🌟",
-    followers: 1234,
-    following: 567,
-    threads: 89,
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
+  const profileStats = {
+    threads: 24,
+    reactions: 156,
+    followers: 89,
+    following: 67
   };
-
-  const emotions = [
-    { name: 'Joy', color: 'bg-yellow-400', percentage: 45 },
-    { name: 'Trust', color: 'bg-green-400', percentage: 30 },
-    { name: 'Anticipation', color: 'bg-orange-400', percentage: 15 },
-    { name: 'Surprise', color: 'bg-cyan-400', percentage: 10 }
-  ];
 
   const mockThreads = [
     {
       id: 1,
-      content: "Just discovered this amazing coffee shop downtown! The atmosphere is perfect for deep conversations ☕️",
-      timestamp: "2h ago",
-      reactions: { joy: 12, trust: 8, anticipation: 3 },
-      emotion: "joy"
+      content: "Just had the most amazing coffee this morning! ☕ Sometimes it's the little things that make your day.",
+      emotion: 'joy',
+      timestamp: '2h ago',
+      reactions: 12,
+      comments: 3
     },
     {
       id: 2,
-      content: "Reflecting on the importance of genuine human connections in our digital age...",
-      timestamp: "1d ago",
-      reactions: { trust: 15, anticipation: 6, joy: 4 },
-      emotion: "trust"
+      content: "Reflecting on this week's challenges. Growth happens outside our comfort zone, but it's not always easy.",
+      emotion: 'contemplative',
+      timestamp: '1d ago',
+      reactions: 8,
+      comments: 5
+    },
+    {
+      id: 3,
+      content: "Grateful for the support from my friends today. Human connection is everything 💙",
+      emotion: 'gratitude',
+      timestamp: '2d ago',
+      reactions: 19,
+      comments: 7
     }
   ];
 
-  const mockStories = [
-    { id: 1, preview: "🌅", emotion: "joy" },
-    { id: 2, preview: "📚", emotion: "trust" },
-    { id: 3, preview: "🎨", emotion: "anticipation" }
-  ];
+  const emotionColors = {
+    joy: 'bg-yellow-100 text-yellow-800',
+    contemplative: 'bg-purple-100 text-purple-800',
+    gratitude: 'bg-blue-100 text-blue-800',
+    excitement: 'bg-orange-100 text-orange-800',
+    calm: 'bg-green-100 text-green-800'
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
+    <div className="min-h-screen bg-gray-50">
       <TopBar />
-      
-      <div className="pt-16 pb-20 px-4 max-w-lg mx-auto">
-        {/* Profile Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-lg p-6 mb-6"
-        >
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center space-x-4">
-              <img 
-                src={profileData.avatar} 
-                alt={profileData.name}
-                className="w-20 h-20 rounded-full border-4 border-indigo-100"
-              />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">{profileData.name}</h1>
-                <p className="text-gray-600">{profileData.username}</p>
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-full">
-                <Edit3 size={20} />
-              </button>
-              <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-full">
-                <Settings size={20} />
-              </button>
-            </div>
-          </div>
-          
-          <p className="text-gray-700 mb-4">{profileData.bio}</p>
-          
-          <div className="flex justify-around text-center border-t pt-4">
-            <div>
-              <div className="font-bold text-lg">{profileData.threads}</div>
-              <div className="text-gray-600 text-sm">Threads</div>
-            </div>
-            <div>
-              <div className="font-bold text-lg">{profileData.followers}</div>
-              <div className="text-gray-600 text-sm">Followers</div>
-            </div>
-            <div>
-              <div className="font-bold text-lg">{profileData.following}</div>
-              <div className="text-gray-600 text-sm">Following</div>
-            </div>
-          </div>
-        </motion.div>
 
-        {/* Emotion Analysis */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-2xl shadow-lg p-6 mb-6"
-        >
-          <h2 className="text-lg font-semibold mb-4 flex items-center">
-            <Sparkles className="mr-2 text-indigo-600" size={20} />
-            Emotion Profile
-          </h2>
-          <div className="space-y-3">
-            {emotions.map((emotion, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-3 h-3 rounded-full ${emotion.color}`}></div>
-                  <span className="text-gray-700">{emotion.name}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-20 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full ${emotion.color}`}
-                      style={{ width: `${emotion.percentage}%` }}
-                    ></div>
+      <div className="pt-16 pb-20">
+        <ProfileHeader />
+        <StoriesCarousel />
+
+        {/* Profile Stats */}
+        <div className="bg-white mx-4 rounded-xl shadow-sm p-4 mb-4">
+          <div className="grid grid-cols-4 gap-4">
+            {Object.entries(profileStats).map(([key, value]) => (
+              <div key={key} className="text-center">
+                <div className="text-xl font-bold text-gray-900">{value}</div>
+                <div className="text-sm text-gray-500 capitalize">{key}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="bg-white mx-4 rounded-xl shadow-sm mb-4">
+          <div className="flex border-b border-gray-200">
+            {['threads', 'vibes', 'saved'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 py-3 px-4 text-center capitalize font-medium transition-colors ${
+                  activeTab === tab
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="px-4 space-y-4">
+          {activeTab === 'threads' && (
+            <div className="space-y-4">
+              {mockThreads.map((thread) => (
+                <motion.div
+                  key={thread.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-xl shadow-sm p-4"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${emotionColors[thread.emotion] || 'bg-gray-100 text-gray-800'}`}>
+                      {thread.emotion}
+                    </span>
+                    <span className="text-xs text-gray-500">{thread.timestamp}</span>
                   </div>
-                  <span className="text-sm text-gray-600">{emotion.percentage}%</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
 
-        {/* Stories */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-2xl shadow-lg p-6 mb-6"
-        >
-          <h2 className="text-lg font-semibold mb-4">Stories</h2>
-          <div className="flex space-x-3 overflow-x-auto">
-            <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white text-2xl border-2 border-dashed border-gray-300">
-              +
-            </div>
-            {mockStories.map(story => (
-              <div key={story.id} className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white text-xl border-2 border-white shadow-lg">
-                {story.preview}
-              </div>
-            ))}
-          </div>
-        </motion.div>
+                  <p className="text-gray-900 mb-3">{thread.content}</p>
 
-        {/* Content Tabs */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white rounded-2xl shadow-lg overflow-hidden"
-        >
-          <div className="flex border-b">
-            <button 
-              onClick={() => setActiveTab('threads')}
-              className={`flex-1 py-3 px-4 text-center font-medium ${
-                activeTab === 'threads' 
-                  ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' 
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Threads
-            </button>
-            <button 
-              onClick={() => setActiveTab('vibes')}
-              className={`flex-1 py-3 px-4 text-center font-medium ${
-                activeTab === 'vibes' 
-                  ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' 
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Vibes
-            </button>
-          </div>
-          
-          <div className="p-4">
-            {activeTab === 'threads' && (
-              <div className="space-y-4">
-                {mockThreads.map(thread => (
-                  <div key={thread.id} className="border-b border-gray-100 pb-4 last:border-b-0">
-                    <p className="text-gray-800 mb-2">{thread.content}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>{thread.timestamp}</span>
-                      <div className="flex items-center space-x-3">
-                        <span className="flex items-center">
-                          <Heart size={14} className="mr-1" />
-                          {Object.values(thread.reactions).reduce((a, b) => a + b, 0)}
-                        </span>
-                        <span className="flex items-center">
-                          <MessageSquare size={14} className="mr-1" />
-                          2
-                        </span>
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-1">
+                        <Heart className="w-4 h-4" />
+                        <span>{thread.reactions}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <MessageSquare className="w-4 h-4" />
+                        <span>{thread.comments}</span>
                       </div>
                     </div>
                   </div>
-                ))}
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'vibes' && (
+            <div className="text-center py-12">
+              <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Daily Vibes</h3>
+              <p className="text-gray-600">Share your daily emotional journey</p>
+              <p className="text-sm text-gray-500 mt-2">Coming in Phase 2</p>
+            </div>
+          )}
+
+          {activeTab === 'saved' && (
+            <div className="text-center py-12">
+              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Calendar className="w-6 h-6 text-gray-400" />
               </div>
-            )}
-            
-            {activeTab === 'vibes' && (
-              <div className="text-center py-8">
-                <Sparkles className="mx-auto mb-4 text-gray-400" size={48} />
-                <p className="text-gray-600">No vibes shared yet</p>
-              </div>
-            )}
-          </div>
-        </motion.div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Saved Content</h3>
+              <p className="text-gray-600">Your bookmarked threads and vibes</p>
+            </div>
+          )}
+        </div>
       </div>
-      
+
       <BottomTabs />
     </div>
   );
-}
+};
+
+export default ProfilePage;
