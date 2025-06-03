@@ -1,115 +1,234 @@
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../services/supabase';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
-// Generate UUID for demo mode
-const generateUUID = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-};
+import authService from '../services/auth';
 
+/**
+ * Enhanced authentication hook for TrueVibe app
+ * Provides authentication methods, state management, and OAuth handling
+ * 
+ * @returns {Object} Authentication methods and state
+ */
 const useAuth = () => {
-  const { user, session, setAuth, clearAuth } = useAuthStore();
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const {
+    user,
+    session,
+    profile,
+    isLoading,
+    isInitialized,
+    error,
+    setAuth,
+    clearAuth,
+    setLoading,
+    setError,
+    initialize,
+    signInWithGmail,
+    handleOAuthCallback,
+    signOut,
+    refreshSession,
+    isAuthenticated,
+    getUserId,
+    getUserEmail,
+    getUserProfile
+  } = useAuthStore();
 
+  const [authListenerSetup, setAuthListenerSetup] = useState(false);
+
+  // Initialize authentication state on first load
   useEffect(() => {
-    // Create a proper UUID for demo user
-    const demoUserId = generateUUID();
-    
-    const mockUser = {
-      id: demoUserId,
-      email: 'demo@truevibe.com',
-      user_metadata: {
-        adjectives: ['Creative', 'Empathetic', 'Curious']
-      }
-    };
-    
-    const mockSession = {
-      user: mockUser,
-      access_token: 'demo-token'
-    };
+    if (!isInitialized) {
+      initialize();
+    }
+  }, [isInitialized, initialize]);
 
-    // Set demo auth immediately
-    setAuth(mockUser, mockSession);
-    setLoading(false);
-
-    // Store demo user in localStorage for consistency
-    localStorage.setItem('truevibe_demo_user', JSON.stringify(mockUser));
-  }, [setAuth, clearAuth]);
-
-  const signUp = async (email, password, adjectives) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            adjectives: adjectives
+  // Set up auth state change listener
+  useEffect(() => {
+    if (!authListenerSetup && isInitialized) {
+      const { data: authListener } = authService.onAuthStateChange(
+        async (event, session, profile) => {
+          console.log('Auth state change:', event);
+          
+          switch (event) {
+            case 'SIGNED_IN':
+              if (session?.user) {
+                setAuth(session.user, session, profile);
+                
+                // Redirect to intended page or home
+                const intendedPath = location.state?.from || '/home';
+                navigate(intendedPath, { replace: true });
+              }
+              break;
+              
+            case 'SIGNED_OUT':
+              clearAuth();
+              navigate('/login', { replace: true });
+              break;
+              
+            case 'TOKEN_REFRESHED':
+              if (session?.user) {
+                setAuth(session.user, session, profile);
+              }
+              break;
+              
+            default:
+              // Handle other auth events if needed
+              break;
           }
         }
-      });
+      );
 
-      if (error) throw error;
+      setAuthListenerSetup(true);
 
-      // Create user profile
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            id: data.user.id,
-            email: data.user.email,
-            name: email.split('@')[0],
-            adjective_one: adjectives[0],
-            adjective_two: adjectives[1],
-            adjective_three: adjectives[2]
-          });
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
+      // Cleanup listener on unmount
+      return () => {
+        if (authListener?.subscription) {
+          authListener.subscription.unsubscribe();
         }
+      };
+    }
+  }, [authListenerSetup, isInitialized, setAuth, clearAuth, navigate, location.state]);
+
+  /**
+   * Handle Gmail OAuth login
+   * @returns {Promise<Object>} Login result
+   */
+  const loginWithGmail = async () => {
+    try {
+      setError(null);
+      const result = await signInWithGmail();
+      return result;
+    } catch (error) {
+      console.error('Gmail login error:', error);
+      setError(error.message);
+      return { success: false, error: error.message };
+    }
+  };
+
+  /**
+   * Handle OAuth callback from redirect
+   * @returns {Promise<Object>} Callback handling result
+   */
+  const handleAuthCallback = async () => {
+    try {
+      setLoading(true);
+      const result = await handleOAuthCallback();
+      
+      if (result.success) {
+        // Redirect will be handled by auth state change listener
+        return result;
+      } else {
+        setError(result.error);
+        navigate('/login', { replace: true });
+        return result;
       }
-
-      return { data, error: null };
     } catch (error) {
-      return { data: null, error };
+      console.error('Auth callback error:', error);
+      setError(error.message);
+      navigate('/login', { replace: true });
+      return { success: false, error: error.message };
     }
   };
 
-  const signIn = async (email, password) => {
+  /**
+   * Sign out current user
+   * @returns {Promise<Object>} Sign out result
+   */
+  const logout = async () => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) throw error;
-      return { data, error: null };
+      const result = await signOut();
+      if (result.success) {
+        navigate('/login', { replace: true });
+      }
+      return result;
     } catch (error) {
-      return { data: null, error };
+      console.error('Logout error:', error);
+      setError(error.message);
+      return { success: false, error: error.message };
     }
   };
 
-  const signOut = async () => {
+  /**
+   * Refresh user session
+   * @returns {Promise<Object>} Refresh result
+   */
+  const refreshUserSession = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      clearAuth();
+      return await refreshSession();
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Session refresh error:', error);
+      setError(error.message);
+      return { success: false, error: error.message };
     }
+  };
+
+  /**
+   * Check if user has completed profile setup
+   * @returns {boolean} Whether profile is complete
+   */
+  const isProfileComplete = () => {
+    if (!profile) return false;
+    
+    return !!(
+      profile.username &&
+      profile.adjective_one &&
+      profile.adjective_two &&
+      profile.adjective_three
+    );
+  };
+
+  /**
+   * Get user's display name
+   * @returns {string} User's display name
+   */
+  const getDisplayName = () => {
+    if (profile?.username) return profile.username;
+    if (user?.user_metadata?.full_name) return user.user_metadata.full_name;
+    if (user?.email) return user.email.split('@')[0];
+    return 'Anonymous User';
+  };
+
+  /**
+   * Get user's avatar URL
+   * @returns {string|null} Avatar URL or null
+   */
+  const getAvatarUrl = () => {
+    return profile?.avatar_url || 
+           user?.user_metadata?.avatar_url || 
+           user?.user_metadata?.picture || 
+           null;
   };
 
   return {
+    // State
     user,
     session,
-    loading,
-    signUp,
-    signIn,
-    signOut,
-    isAuthenticated: !!user && !!session
+    profile,
+    isLoading,
+    isInitialized,
+    error,
+    isAuthenticated: isAuthenticated(),
+    
+    // Methods
+    loginWithGmail,
+    logout,
+    handleAuthCallback,
+    refreshUserSession,
+    
+    // Utilities
+    getUserId,
+    getUserEmail,
+    getUserProfile,
+    isProfileComplete,
+    getDisplayName,
+    getAvatarUrl,
+    
+    // Actions
+    clearError: () => setError(null),
+    setLoading
   };
 };
 

@@ -1,156 +1,170 @@
+
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { FaGoogle, FaSpinner } from 'react-icons/fa';
+import { HiShieldCheck, HiUserGroup, HiHeart } from 'react-icons/hi';
 import useAuthStore from '../../store/authStore';
-import { Eye, EyeOff } from 'lucide-react';
 
 /**
- * Login form component with email/password authentication
- * Integrates with Zustand auth store for state management
+ * Modern Gmail OAuth login component for TrueVibe
+ * Features gradient design, smooth animations, and social proof
  */
 const LoginForm = () => {
-  // Get auth store functions and state
-  const { signIn, error, isLoading, clearError } = useAuthStore();
-  
-  // Form state
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [formErrors, setFormErrors] = useState({});
-  
-  // Clear auth store errors when component unmounts
+  const { signInWithGmail, isLoading, error, clearAuth } = useAuthStore();
+  const [isHovered, setIsHovered] = useState(false);
+
   useEffect(() => {
-    return () => {
-      clearError();
-    };
-  }, [clearError]);
-  
-  // Validate form before submission
-  const validateForm = () => {
-    const errors = {};
-    
-    if (!email) {
-      errors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      errors.email = 'Email is invalid';
+    // Clear any existing errors when component mounts
+    if (error) {
+      clearAuth();
     }
-    
-    if (!password) {
-      errors.password = 'Password is required';
-    } else if (password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-  
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (validateForm()) {
-      await signIn(email, password);
+  }, [error, clearAuth]);
+
+  const handleGmailLogin = async () => {
+    try {
+      await signInWithGmail();
+    } catch (err) {
+      console.error('Login error:', err);
     }
   };
-  
+
+  const features = [
+    {
+      icon: HiShieldCheck,
+      title: "Secure Authentication",
+      description: "Your data is protected with enterprise-grade security"
+    },
+    {
+      icon: HiUserGroup,
+      title: "Connect Authentically", 
+      description: "Share your true emotions in a supportive community"
+    },
+    {
+      icon: HiHeart,
+      title: "Emotion-Aware",
+      description: "AI-powered emotion detection for meaningful connections"
+    }
+  ];
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="max-w-md w-full mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg"
-    >
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome back</h1>
-        <p className="text-gray-600 dark:text-gray-400">Sign in to continue to TrueVibe</p>
-      </div>
-      
-      {error && (
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo and Title */}
         <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          className="p-3 mb-4 text-sm text-red-700 bg-red-100 dark:bg-red-900 dark:text-red-200 rounded-lg"
-          role="alert"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-8"
         >
-          {error}
+          <div className="bg-white/10 backdrop-blur-lg rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+            <span className="text-3xl font-bold text-white">T</span>
+          </div>
+          <h1 className="text-4xl font-bold text-white mb-2">TrueVibe</h1>
+          <p className="text-blue-200 text-lg">Share your authentic emotions</p>
         </motion.div>
-      )}
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={`w-full px-3 py-2 border ${formErrors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white`}
-            placeholder="you@example.com"
-            disabled={isLoading}
-            aria-invalid={formErrors.email ? 'true' : 'false'}
-          />
-          {formErrors.email && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.email}</p>
-          )}
-        </div>
-        
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Password
-            </label>
-            <Link to="/forgot-password" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
-              Forgot password?
-            </Link>
+
+        {/* Main Login Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-white/20"
+        >
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-semibold text-white mb-2">Welcome Back</h2>
+            <p className="text-blue-200">Sign in to connect with your authentic self</p>
           </div>
-          <div className="relative">
-            <input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-3 py-2 border ${formErrors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white pr-10`}
-              placeholder="••••••••"
-              disabled={isLoading}
-              aria-invalid={formErrors.password ? 'true' : 'false'}
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              onClick={() => setShowPassword(!showPassword)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+
+          {/* Error Display */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg"
             >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-          {formErrors.password && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.password}</p>
+              <p className="text-red-200 text-sm text-center">{error}</p>
+            </motion.div>
           )}
-        </div>
-        
-        <div>
-          <button
-            type="submit"
+
+          {/* Gmail OAuth Button */}
+          <motion.button
+            onClick={handleGmailLogin}
             disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            onHoverStart={() => setIsHovered(true)}
+            onHoverEnd={() => setIsHovered(false)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full bg-white hover:bg-gray-50 text-gray-900 font-semibold py-4 px-6 rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Signing in...' : 'Sign in'}
-          </button>
-        </div>
-      </form>
-      
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Don't have an account?{' '}
-          <Link to="/signup" className="font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
-            Sign up
-          </Link>
-        </p>
+            {isLoading ? (
+              <FaSpinner className="animate-spin text-xl" />
+            ) : (
+              <FaGoogle className="text-xl" />
+            )}
+            <span className="text-lg">
+              {isLoading ? 'Connecting...' : 'Continue with Gmail'}
+            </span>
+          </motion.button>
+
+          {/* Privacy Notice */}
+          <p className="text-xs text-blue-200 text-center mt-4 leading-relaxed">
+            By continuing, you agree to our Terms of Service and Privacy Policy. 
+            Your emotional data is encrypted and never shared without consent.
+          </p>
+        </motion.div>
+
+        {/* Features Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mt-8 space-y-4"
+        >
+          {features.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: 0.6 + index * 0.1 }}
+              className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-500/20 rounded-lg p-2">
+                  <feature.icon className="w-5 h-5 text-blue-300" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-white font-medium text-sm">{feature.title}</h3>
+                  <p className="text-blue-200 text-xs mt-1">{feature.description}</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="text-center mt-8"
+        >
+          <p className="text-blue-300 text-sm">
+            Join thousands sharing their authentic emotions
+          </p>
+          <div className="flex justify-center items-center mt-2 space-x-2">
+            <div className="flex -space-x-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-400 to-blue-400 border-2 border-white/20"
+                />
+              ))}
+            </div>
+            <span className="text-blue-300 text-xs ml-2">+5,000 users</span>
+          </div>
+        </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
