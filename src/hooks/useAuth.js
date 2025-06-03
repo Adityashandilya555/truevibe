@@ -1,231 +1,184 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
-import authService from '../services/auth';
+import { localAuth } from '../services/localAuth';
 
-/**
- * Enhanced authentication hook for TrueVibe app
- * Provides authentication methods, state management, and OAuth handling
- * 
- * @returns {Object} Authentication methods and state
- */
 const useAuth = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const {
     user,
-    session,
     profile,
     isLoading,
-    isInitialized,
-    error,
-    setAuth,
-    clearAuth,
+    setUser,
+    setProfile,
     setLoading,
-    setError,
-    initialize,
-    signInWithGmail,
-    handleOAuthCallback,
-    signOut,
-    refreshSession,
-    isAuthenticated,
-    getUserId,
-    getUserEmail,
-    getUserProfile
+    logout: storeLogout
   } = useAuthStore();
 
-  const [authListenerSetup, setAuthListenerSetup] = useState(false);
+  const [error, setError] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize authentication state on first load
+  // Initialize auth state on mount
   useEffect(() => {
-    if (!isInitialized) {
-      initialize();
-    }
-  }, [isInitialized, initialize]);
-
-  // Set up auth state change listener
-  useEffect(() => {
-    if (!authListenerSetup && isInitialized) {
-      const { data: authListener } = authService.onAuthStateChange(
-        async (event, session, profile) => {
-          console.log('Auth state change:', event);
-          
-          switch (event) {
-            case 'SIGNED_IN':
-              if (session?.user) {
-                setAuth(session.user, session, profile);
-                
-                // Redirect to intended page or home
-                const intendedPath = location.state?.from || '/home';
-                navigate(intendedPath, { replace: true });
-              }
-              break;
-              
-            case 'SIGNED_OUT':
-              clearAuth();
-              navigate('/login', { replace: true });
-              break;
-              
-            case 'TOKEN_REFRESHED':
-              if (session?.user) {
-                setAuth(session.user, session, profile);
-              }
-              break;
-              
-            default:
-              // Handle other auth events if needed
-              break;
-          }
-        }
-      );
-
-      setAuthListenerSetup(true);
-
-      // Cleanup listener on unmount
-      return () => {
-        if (authListener?.subscription) {
-          authListener.subscription.unsubscribe();
-        }
-      };
-    }
-  }, [authListenerSetup, isInitialized, setAuth, clearAuth, navigate, location.state]);
-
-  /**
-   * Handle Gmail OAuth login
-   * @returns {Promise<Object>} Login result
-   */
-  const loginWithGmail = async () => {
-    try {
-      setError(null);
-      const result = await signInWithGmail();
-      return result;
-    } catch (error) {
-      console.error('Gmail login error:', error);
-      setError(error.message);
-      return { success: false, error: error.message };
-    }
-  };
-
-  /**
-   * Handle OAuth callback from redirect
-   * @returns {Promise<Object>} Callback handling result
-   */
-  const handleAuthCallback = async () => {
-    try {
+    const initAuth = async () => {
       setLoading(true);
-      const result = await handleOAuthCallback();
-      
-      if (result.success) {
-        // Redirect will be handled by auth state change listener
-        return result;
-      } else {
-        setError(result.error);
-        navigate('/login', { replace: true });
-        return result;
+      try {
+        const { user } = await localAuth.getCurrentUser();
+        if (user) {
+          const { profile } = await localAuth.getCurrentProfile();
+          setUser(user);
+          setProfile(profile);
+        }
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+      } finally {
+        setLoading(false);
+        setIsInitialized(true);
       }
-    } catch (error) {
-      console.error('Auth callback error:', error);
-      setError(error.message);
-      navigate('/login', { replace: true });
-      return { success: false, error: error.message };
+    };
+
+    initAuth();
+  }, [setUser, setProfile, setLoading]);
+
+  const signUp = async (email, password, username) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { user, profile, error } = await localAuth.signUp(email, password, username);
+
+      if (error) {
+        setError(error);
+        return { success: false, error };
+      }
+
+      setUser(user);
+      setProfile(profile);
+      navigate('/home', { replace: true });
+      return { success: true, user, profile };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
     }
   };
 
-  /**
-   * Sign out current user
-   * @returns {Promise<Object>} Sign out result
-   */
+  const signIn = async (email, password) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { user, profile, error } = await localAuth.signIn(email, password);
+
+      if (error) {
+        setError(error);
+        return { success: false, error };
+      }
+
+      setUser(user);
+      setProfile(profile);
+
+      // Redirect to intended page or home
+      const intendedPath = location.state?.from || '/home';
+      navigate(intendedPath, { replace: true });
+      return { success: true, user, profile };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
+    setLoading(true);
     try {
-      const result = await signOut();
-      if (result.success) {
-        navigate('/login', { replace: true });
+      await localAuth.signOut();
+      storeLogout();
+      navigate('/login', { replace: true });
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateProfile = async (updates) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { profile, error } = await localAuth.updateProfile(updates);
+
+      if (error) {
+        setError(error);
+        return { success: false, error };
       }
-      return result;
-    } catch (error) {
-      console.error('Logout error:', error);
-      setError(error.message);
-      return { success: false, error: error.message };
+
+      setProfile(profile);
+      return { success: true, profile };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
     }
   };
 
-  /**
-   * Refresh user session
-   * @returns {Promise<Object>} Refresh result
-   */
-  const refreshUserSession = async () => {
-    try {
-      return await refreshSession();
-    } catch (error) {
-      console.error('Session refresh error:', error);
-      setError(error.message);
-      return { success: false, error: error.message };
-    }
+  const isAuthenticated = () => {
+    return !!user;
   };
 
-  /**
-   * Check if user has completed profile setup
-   * @returns {boolean} Whether profile is complete
-   */
-  const isProfileComplete = () => {
-    if (!profile) return false;
-    
-    return !!(
-      profile.username &&
-      profile.adjective_one &&
-      profile.adjective_two &&
-      profile.adjective_three
-    );
+  const getUserId = () => {
+    return user?.id || null;
   };
 
-  /**
-   * Get user's display name
-   * @returns {string} User's display name
-   */
+  const getUserEmail = () => {
+    return user?.email || null;
+  };
+
+  const getUserProfile = () => {
+    return profile;
+  };
+
   const getDisplayName = () => {
     if (profile?.username) return profile.username;
-    if (user?.user_metadata?.full_name) return user.user_metadata.full_name;
+    if (user?.username) return user.username;
     if (user?.email) return user.email.split('@')[0];
     return 'Anonymous User';
   };
 
-  /**
-   * Get user's avatar URL
-   * @returns {string|null} Avatar URL or null
-   */
   const getAvatarUrl = () => {
-    return profile?.avatar_url || 
-           user?.user_metadata?.avatar_url || 
-           user?.user_metadata?.picture || 
-           null;
+    return profile?.avatar_url || user?.user_metadata?.avatar_url || null;
   };
 
   return {
     // State
     user,
-    session,
     profile,
     isLoading,
     isInitialized,
     error,
     isAuthenticated: isAuthenticated(),
-    
+
     // Methods
-    loginWithGmail,
+    signUp,
+    signIn,
     logout,
-    handleAuthCallback,
-    refreshUserSession,
-    
+    updateProfile,
+
     // Utilities
     getUserId,
     getUserEmail,
     getUserProfile,
-    isProfileComplete,
     getDisplayName,
     getAvatarUrl,
-    
+
     // Actions
     clearError: () => setError(null),
     setLoading
