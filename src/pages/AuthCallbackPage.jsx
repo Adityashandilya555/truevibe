@@ -1,56 +1,54 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import useAuthStore from '../store/authStore';
 import LoadingScreen from '../components/common/LoadingScreen';
 
-/**
- * OAuth callback page that handles authentication redirects
- * Processes the OAuth response and redirects to appropriate page
- */
 const AuthCallbackPage = () => {
   const navigate = useNavigate();
-  const { handleAuthCallback, isLoading, error } = useAuth();
+  const { handleOAuthCallback } = useAuthStore();
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const processCallback = async () => {
       try {
-        const result = await handleAuthCallback();
+        console.log('Processing OAuth callback...');
+        const result = await handleOAuthCallback();
         
         if (result.success) {
-          // Redirect will be handled by auth state change
-          console.log('OAuth callback successful');
+          console.log('OAuth callback successful, redirecting to home...');
+          navigate('/home', { replace: true });
         } else {
           console.error('OAuth callback failed:', result.error);
-          navigate('/login?error=auth_failed', { replace: true });
+          setError(result.error || 'Authentication failed');
+          setTimeout(() => navigate('/login'), 3000);
         }
-      } catch (err) {
-        console.error('Callback processing error:', err);
-        navigate('/login?error=callback_failed', { replace: true });
+      } catch (error) {
+        console.error('Callback processing error:', error);
+        setError('Authentication failed. Please try again.');
+        setTimeout(() => navigate('/login'), 3000);
       }
     };
 
     processCallback();
-  }, [handleAuthCallback, navigate]);
+  }, [handleOAuthCallback, navigate]);
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication Error</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => navigate('/login')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Back to Login
-          </button>
+          <div className="text-red-400 text-lg mb-4">
+            {error}
+          </div>
+          <div className="text-gray-400">
+            Redirecting to login...
+          </div>
         </div>
       </div>
     );
   }
 
-  return <LoadingScreen message="Completing authentication..." />;
+  return <LoadingScreen />;
 };
 
 export default AuthCallbackPage;
