@@ -1,246 +1,279 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Heart, Users, MessageCircle, Smile, Shield, BarChart2 } from 'lucide-react';
-import AuthFlow from '../components/auth/AuthFlow';
-import useAuthStore from '../store/authStore';
+import { Link } from 'react-router-dom';
+import { Heart, Users, Brain, Shield, Zap, MessageCircle, TrendingUp, Globe } from 'lucide-react';
 
-/**
- * LandingPage Component
- * 
- * Entry point for non-authenticated users to learn about TrueVibe
- * and navigate to login or signup pages
- */
 const LandingPage = () => {
-  const navigate = useNavigate();
-  const [showAuthFlow, setShowAuthFlow] = useState(false);
-  const [activeFeature, setActiveFeature] = useState(0);
-  const { user, session } = useAuthStore();
-
-  // Redirect if already authenticated
-  React.useEffect(() => {
-    if (user && session) {
-      navigate('/threads');
-    }
-  }, [user, session, navigate]);
-
-  // Features list with icons and descriptions
   const features = [
     {
-      icon: <MessageCircle className="w-6 h-6 text-yellow-500" />,
-      title: 'Emotion-Aware Threads',
-      description: 'Share your thoughts with real-time emotion analysis that helps others understand your true feelings.'
+      icon: Brain,
+      title: 'Emotion Detection',
+      description: 'AI-powered emotion analysis helps you understand the sentiment behind every post'
     },
     {
-      icon: <Users className="w-6 h-6 text-green-500" />,
-      title: 'Meaningful Connections',
-      description: 'Connect with people who resonate with your emotional state, not just your content.'
+      icon: Heart,
+      title: 'Authentic Connections',
+      description: 'Connect with others based on genuine emotions and shared experiences'
     },
     {
-      icon: <Heart className="w-6 h-6 text-red-500" />,
-      title: 'Five-Reaction System',
-      description: 'Go beyond likes with five nuanced ways to respond: Resonate, Support, Learn, Challenge, and Amplify.'
+      icon: Users,
+      title: 'Empathetic Community',
+      description: 'Build meaningful relationships in a supportive, understanding environment'
     },
     {
-      icon: <Smile className="w-6 h-6 text-blue-500" />,
-      title: 'Emotion Visualization',
-      description: 'See the emotional landscape of your social feed with color-coded indicators based on Plutchik\'s wheel.'
+      icon: Shield,
+      title: 'Safe Space',
+      description: 'Express yourself freely in a moderated, respectful community'
     },
     {
-      icon: <Shield className="w-6 h-6 text-purple-500" />,
-      title: 'Emotional Intelligence',
-      description: 'Develop greater self-awareness by tracking your emotional patterns over time.'
+      icon: Zap,
+      title: 'Real-time Vibes',
+      description: 'See how emotions flow through the community in real-time'
     },
     {
-      icon: <BarChart2 className="w-6 h-6 text-orange-500" />,
-      title: 'Emotional Trends',
-      description: 'Discover trending emotions and topics that resonate with the community.'
+      icon: Globe,
+      title: 'Global Reach',
+      description: 'Connect with emotionally intelligent people from around the world'
     }
   ];
 
-  // Hero section animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.5 }
-    }
-  };
-
-  // Feature animation variants
-  const featureVariants = {
-    inactive: { scale: 0.95, opacity: 0.7 },
-    active: { scale: 1, opacity: 1 }
-  };
-
-  // Show auth flow if user clicks sign in/up
-  if (showAuthFlow) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-50 dark:bg-gray-900">
-        <div className="w-full max-w-md">
-          <div className="mb-6 text-center">
-            <button
-              onClick={() => setShowAuthFlow(false)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4 inline-flex items-center"
-            >
-              ← Back to landing page
-            </button>
-          </div>
-          <AuthFlow />
-        </div>
-      </div>
-    );
-  }
+  const emotions = [
+    { name: 'Joy', color: '#FFD700', icon: '😊' },
+    { name: 'Trust', color: '#00CED1', icon: '🤝' },
+    { name: 'Fear', color: '#800080', icon: '😰' },
+    { name: 'Surprise', color: '#FF6347', icon: '😲' },
+    { name: 'Sadness', color: '#4682B4', icon: '😢' },
+    { name: 'Disgust', color: '#228B22', icon: '😤' },
+    { name: 'Anger', color: '#DC143C', icon: '😠' },
+    { name: 'Anticipation', color: '#FF8C00', icon: '🤔' }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
       {/* Hero Section */}
-      <motion.section 
-        className="pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <div className="text-center">
-          <motion.div variants={itemVariants}>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-              <span className="block">Welcome to </span>
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-red-500">
-                TrueVibe
-              </span>
+      <div className="relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center"
+          >
+            <h1 className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 mb-6">
+              TrueVibe
             </h1>
+            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+              The first emotion-aware social media platform where authentic feelings create genuine connections
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link
+                to="/auth"
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                Get Started
+              </Link>
+              <button className="text-cyan-400 hover:text-cyan-300 px-8 py-4 rounded-full text-lg font-semibold border border-cyan-400 hover:border-cyan-300 transition-all duration-300">
+                Learn More
+              </button>
+            </div>
           </motion.div>
 
-          <motion.p 
-            className="mt-6 max-w-2xl mx-auto text-xl text-gray-600 dark:text-gray-300"
-            variants={itemVariants}
-          >
-            The emotion-aware social platform that prioritizes meaningful human connections over engagement algorithms.
-          </motion.p>
-
-          <motion.div 
-            className="mt-10 flex flex-col sm:flex-row gap-4 justify-center"
-            variants={itemVariants}
-          >
-            <button
-              onClick={() => setShowAuthFlow(true)}
-              className="px-8 py-3 text-base font-medium rounded-full text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 md:py-4 md:text-lg md:px-10 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-            >
-              Get Started
-            </button>
-            <button
-              onClick={() => setShowAuthFlow(true)}
-              className="px-8 py-3 text-base font-medium rounded-full text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 md:py-4 md:text-lg md:px-10 transition-colors"
-            >
-              Sign In
-            </button>
-          </motion.div>
+          {/* Floating Emotion Bubbles */}
+          <div className="absolute inset-0 pointer-events-none">
+            {emotions.map((emotion, index) => (
+              <motion.div
+                key={emotion.name}
+                className="absolute rounded-full flex items-center justify-center text-2xl"
+                style={{
+                  background: `${emotion.color}20`,
+                  border: `2px solid ${emotion.color}40`,
+                  width: '60px',
+                  height: '60px',
+                  left: `${10 + (index * 11)}%`,
+                  top: `${20 + (index % 3) * 20}%`
+                }}
+                animate={{
+                  y: [0, -20, 0],
+                  rotate: [0, 360]
+                }}
+                transition={{
+                  duration: 4 + index * 0.5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                {emotion.icon}
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </motion.section>
+      </div>
+
+      {/* How It Works Section */}
+      <section className="py-20 bg-gray-900/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold text-white mb-4">How TrueVibe Works</h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Experience social media powered by emotional intelligence
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: '01',
+                title: 'Express Authentically',
+                description: 'Share your thoughts and feelings. Our AI detects the emotion in your posts.',
+                icon: MessageCircle
+              },
+              {
+                step: '02',
+                title: 'Connect Meaningfully',
+                description: 'Find others who resonate with your emotions and build genuine relationships.',
+                icon: Users
+              },
+              {
+                step: '03',
+                title: 'Grow Together',
+                description: 'Learn from diverse emotional perspectives and develop emotional intelligence.',
+                icon: TrendingUp
+              }
+            ].map((item, index) => (
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className="text-center"
+              >
+                <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <item.icon className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-cyan-400 text-sm font-bold mb-2">{item.step}</div>
+                <h3 className="text-xl font-semibold text-white mb-4">{item.title}</h3>
+                <p className="text-gray-300">{item.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Features Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
-            Emotion-First Social Experience
-          </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-600 dark:text-gray-300">
-            Discover how TrueVibe is revolutionizing social media with psychological research.
-          </p>
-        </div>
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold text-white mb-4">Why Choose TrueVibe?</h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              More than just social media - it's emotional intelligence in action
+            </p>
+          </motion.div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700"
-              initial="inactive"
-              animate={activeFeature === index ? 'active' : 'inactive'}
-              variants={featureVariants}
-              whileHover="active"
-              onHoverStart={() => setActiveFeature(index)}
-            >
-              <div className="flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-gray-100 dark:bg-gray-700">
-                {feature.icon}
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{feature.description}</p>
-            </motion.div>
-          ))}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 hover:bg-gray-800/70 transition-all duration-300 border border-gray-700"
+              >
+                <feature.icon className="w-12 h-12 text-cyan-400 mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
+                <p className="text-gray-300">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Emotions Showcase */}
+      <section className="py-20 bg-gray-900/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold text-white mb-4">8 Core Emotions</h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Every emotion matters. TrueVibe recognizes and celebrates the full spectrum of human feeling.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {emotions.map((emotion, index) => (
+              <motion.div
+                key={emotion.name}
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+                className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-gray-800/70 transition-all duration-300 border"
+                style={{ borderColor: `${emotion.color}40` }}
+              >
+                <div 
+                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"
+                  style={{ backgroundColor: `${emotion.color}20`, border: `2px solid ${emotion.color}` }}
+                >
+                  {emotion.icon}
+                </div>
+                <h3 className="text-lg font-semibold text-white">{emotion.name}</h3>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 rounded-3xl shadow-xl overflow-hidden">
-          <div className="px-6 py-12 sm:px-12 sm:py-16 lg:flex lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                <span className="block">Ready to experience</span>
-                <span className="block">true emotional connection?</span>
-              </h2>
-              <p className="mt-4 max-w-lg text-lg text-purple-100">
-                Join thousands of users who are already discovering the power of emotion-aware social media.
-              </p>
-            </div>
-            <div className="mt-8 lg:mt-0 lg:ml-8">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  onClick={() => setShowAuthFlow(true)}
-                  className="px-6 py-3 text-base font-medium rounded-full text-purple-600 bg-white hover:bg-gray-100 md:py-4 md:text-lg md:px-8 transition-colors flex items-center justify-center"
-                >
-                  Sign Up Now
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setShowAuthFlow(true)}
-                  className="px-6 py-3 text-base font-medium rounded-full text-white bg-purple-700 bg-opacity-30 hover:bg-opacity-40 md:py-4 md:text-lg md:px-8 transition-colors"
-                >
-                  Learn More
-                </button>
-              </div>
-            </div>
-          </div>
+      <section className="py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="text-4xl font-bold text-white mb-6">
+              Ready to Share Your True Vibe?
+            </h2>
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+              Join thousands of users who are already experiencing more authentic, emotionally-aware social connections.
+            </p>
+            <Link
+              to="/auth"
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-12 py-4 rounded-full text-xl font-semibold hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-xl inline-block"
+            >
+              Join TrueVibe Today
+            </Link>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="border-t border-gray-200 dark:border-gray-800 pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="flex items-center">
-                <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-red-500">
-                  TrueVibe
-                </span>
-                <span className="ml-2 text-gray-500 dark:text-gray-400">&copy; {new Date().getFullYear()}</span>
-              </div>
-              <div className="mt-4 md:mt-0 flex space-x-6">
-                <Link to="#" className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
-                  Privacy
-                </Link>
-                <Link to="#" className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
-                  Terms
-                </Link>
-                <Link to="#" className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
-                  About
-                </Link>
-                <Link to="#" className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
-                  Contact
-                </Link>
-              </div>
+      <footer className="bg-gray-900 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-4">
+              TrueVibe
+            </h3>
+            <p className="text-gray-400 mb-8">Emotion-aware social media for genuine connections</p>
+            <div className="flex justify-center space-x-8">
+              <Link to="/documentation" className="text-gray-400 hover:text-white transition-colors">Documentation</Link>
+              <Link to="/support" className="text-gray-400 hover:text-white transition-colors">Support</Link>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy</a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">Terms</a>
             </div>
           </div>
         </div>

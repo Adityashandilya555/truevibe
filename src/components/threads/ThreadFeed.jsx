@@ -137,6 +137,7 @@ const ThreadFeed = () => {
 const ThreadCard = ({ thread }) => {
   const { user } = useAuthStore();
   const [showActions, setShowActions] = useState(false);
+  const [showReplyComposer, setShowReplyComposer] = useState(false);
 
   const timeAgo = (timestamp) => {
     const now = new Date();
@@ -167,14 +168,45 @@ const ThreadCard = ({ thread }) => {
     return colors[emotion] || colors.neutral;
   };
 
+  const getEmotionGradient = (emotion) => {
+    const gradients = {
+      joy: 'from-yellow-400 to-orange-400',
+      sadness: 'from-blue-400 to-indigo-500',
+      anger: 'from-red-500 to-pink-500',
+      fear: 'from-purple-500 to-indigo-600',
+      surprise: 'from-orange-400 to-red-400',
+      disgust: 'from-green-500 to-teal-500',
+      anticipation: 'from-orange-500 to-yellow-400',
+      trust: 'from-cyan-400 to-blue-500',
+      neutral: 'from-gray-400 to-gray-500'
+    };
+    return gradients[emotion] || gradients.neutral;
+  };
+
   return (
     <motion.div
-      className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+      className={`relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 overflow-hidden`}
+      style={{
+        borderColor: getEmotionColor(thread.emotion),
+        boxShadow: `0 8px 32px ${getEmotionColor(thread.emotion)}20`
+      }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
     >
+      {/* Emotion gradient bar */}
+      <div 
+        className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${getEmotionGradient(thread.emotion)}`}
+      />
+      
+      {/* Glowing border effect */}
+      <div 
+        className="absolute inset-0 rounded-xl opacity-20 blur-sm"
+        style={{
+          background: `linear-gradient(45deg, ${getEmotionColor(thread.emotion)}, transparent, ${getEmotionColor(thread.emotion)})`
+        }}
+      />
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
@@ -253,11 +285,71 @@ const ThreadCard = ({ thread }) => {
         )}
       </div>
 
+      {/* Action Buttons */}
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setShowReplyComposer(!showReplyComposer)}
+            className="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors"
+          >
+            <MessageCircle size={18} />
+            <span className="text-sm">Reply</span>
+          </button>
+          
+          {user && thread.user_profiles?.username === user.email?.split('@')[0] && (
+            <button
+              onClick={() => {/* TODO: Add edit functionality */}}
+              className="flex items-center space-x-2 text-gray-500 hover:text-green-500 transition-colors"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              <span className="text-sm">Edit</span>
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Share size={18} className="text-gray-500 hover:text-blue-500 cursor-pointer transition-colors" />
+        </div>
+      </div>
+
       {/* Reaction System */}
       <ReactionSystem 
         threadId={thread.id} 
         reactions={thread.reaction_counts || {}} 
       />
+
+      {/* Reply Composer */}
+      {showReplyComposer && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4"
+          style={{ borderLeftColor: getEmotionColor(thread.emotion) }}
+        >
+          <textarea
+            placeholder="Write a thoughtful reply..."
+            className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            rows="3"
+          />
+          <div className="flex justify-end space-x-2 mt-3">
+            <button
+              onClick={() => setShowReplyComposer(false)}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Reply
+            </button>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 };
