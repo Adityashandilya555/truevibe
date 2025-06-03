@@ -38,3 +38,26 @@ const TopBar = () => {
 };
 
 export default TopBar;
+import React from 'react';
+import { Bell, Search } from 'lucide-react';
+
+const TopBar = ({ title = "TrueVibe" }) => {
+  return (
+    <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
+      <div className="flex items-center justify-between px-4 py-3">
+        <h1 className="text-xl font-bold text-gray-900">{title}</h1>
+        
+        <div className="flex items-center space-x-3">
+          <button className="p-2 rounded-full hover:bg-gray-100">
+            <Search size={20} className="text-gray-600" />
+          </button>
+          <button className="p-2 rounded-full hover:bg-gray-100">
+            <Bell size={20} className="text-gray-600" />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default TopBar;
