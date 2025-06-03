@@ -22,7 +22,15 @@ const LoginForm = () => {
 
   const handleGmailLogin = async () => {
     try {
-      await signInWithGmail();
+      console.log('Starting Gmail login...');
+      const result = await signInWithGmail();
+      
+      if (result.error) {
+        console.error('Gmail login failed:', result.error);
+        // Handle error - it should be shown via the store's error state
+      } else {
+        console.log('Gmail login initiated successfully');
+      }
     } catch (err) {
       console.error('Login error:', err);
     }
