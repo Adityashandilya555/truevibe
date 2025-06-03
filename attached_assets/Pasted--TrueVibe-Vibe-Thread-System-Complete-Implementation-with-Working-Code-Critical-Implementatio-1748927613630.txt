@@ -1,0 +1,1519 @@
+# TrueVibe Vibe Thread System - Complete Implementation with Working Code
+
+## Critical Implementation Note
+This prompt contains complete, working code implementations. Do NOT write interfaces or architectures - implement these exact algorithms and functions. Copy and adapt the provided code directly.
+
+---
+
+## 1. Core Emotion Detection Engine (Working Implementation)
+
+```typescript
+// utils/emotionAnalysis.ts - Complete VADER + Plutchik Implementation
+import * as vaderSentiment from 'vader-sentiment';
+
+interface EmotionAnalysis {
+  primary: EmotionType;
+  confidence: number;
+  secondary?: EmotionType;
+  intensity: number;
+  rawScores: VaderScores;
+}
+
+type EmotionType = 'joy' | 'trust' | 'fear' | 'surprise' | 'sadness' | 'disgust' | 'anger' | 'anticipation';
+
+interface VaderScores {
+  compound: number;
+  positive: number;
+  negative: number;
+  neutral: number;
+}
+
+class EmotionDetectionEngine {
+  private emotionKeywords = {
+    joy: {
+      patterns: ['happy', 'excited', 'thrilled', 'amazing', 'wonderful', 'celebration', 'awesome', 'fantastic', 'great', 'love', 'perfect', 'brilliant', 'excellent', 'delighted', 'overjoyed'],
+      emojis: ['😊', '😄', '🎉', '🚀', '❤️', '😍', '🥳', '✨', '🌟', '💫'],
+      weight: 1.2
+    },
+    trust: {
+      patterns: ['believe', 'confident', 'reliable', 'support', 'faith', 'loyal', 'honest', 'trustworthy', 'dependable', 'secure', 'certain', 'sure'],
+      emojis: ['🤝', '💪', '👍', '✅', '🙏'],
+      weight: 1.0
+    },
+    fear: {
+      patterns: ['worried', 'scared', 'anxious', 'nervous', 'afraid', 'terrified', 'panic', 'stress', 'concern', 'frightened', 'alarmed'],
+      emojis: ['😰', '😱', '😨', '😟', '😧', '🙈'],
+      weight: 1.1
+    },
+    surprise: {
+      patterns: ['wow', 'unexpected', 'shocked', 'amazed', 'sudden', 'surprising', 'unbelievable', 'incredible', 'omg', 'whoa'],
+      emojis: ['😱', '😲', '🤯', '😮', '🙀', '‼️'],
+      weight: 1.1
+    },
+    sadness: {
+      patterns: ['sad', 'depressed', 'heartbroken', 'crying', 'grief', 'disappointed', 'lonely', 'miserable', 'devastated', 'upset'],
+      emojis: ['😢', '😭', '😞', '😔', '💔', '😿'],
+      weight: 0.9
+    },
+    disgust: {
+      patterns: ['gross', 'disgusting', 'revolting', 'sick', 'horrible', 'awful', 'terrible', 'nasty', 'repulsive'],
+      emojis: ['🤮', '😷', '🤢', '😖', '🙄'],
+      weight: 0.8
+    },
+    anger: {
+      patterns: ['angry', 'furious', 'mad', 'rage', 'frustrated', 'annoyed', 'outraged', 'livid', 'pissed', 'hate'],
+      emojis: ['😡', '🤬', '😠', '👿', '💢', '🔥'],
+      weight: 1.0
+    },
+    anticipation: {
+      patterns: ['excited', 'looking forward', 'can\'t wait', 'upcoming', 'soon', 'eager', 'hopeful', 'expecting', 'anticipating'],
+      emojis: ['⏰', '🔜', '👀', '🎯', '🚀'],
+      weight: 1.1
+    }
+  };
+
+  private intensityModifiers = {
+    amplifiers: {
+      'very': 1.4, 'extremely': 1.6, 'incredibly': 1.5, 'absolutely': 1.5, 
+      'totally': 1.3, 'really': 1.2, 'so': 1.3, 'super': 1.4, 'highly': 1.3,
+      'completely': 1.5, 'utterly': 1.6, 'truly': 1.2, 'genuinely': 1.2
+    },
+    diminishers: {
+      'slightly': 0.7, 'somewhat': 0.8, 'kinda': 0.8, 'little': 0.7, 
+      'bit': 0.8, 'barely': 0.6, 'hardly': 0.6, 'mildly': 0.7, 'fairly': 0.9
+    }
+  };
+
+  public analyzeEmotion(text: string): EmotionAnalysis {
+    // Step 1: Get VADER sentiment scores
+    const vaderResult = vaderSentiment.SentimentIntensityAnalyzer.polarity_scores(text);
+    
+    // Step 2: Extract emotion-specific patterns
+    const emotionScores = this.extractEmotionScores(text);
+    
+    // Step 3: Calculate intensity modifiers
+    const intensity = this.calculateIntensity(text);
+    
+    // Step 4: Map to Plutchik emotions
+    const emotionMapping = this.mapToPlutchikEmotions(vaderResult, emotionScores, intensity);
+    
+    return {
+      primary: emotionMapping.primary,
+      confidence: emotionMapping.confidence,
+      secondary: emotionMapping.secondary,
+      intensity: intensity,
+      rawScores: vaderResult
+    };
+  }
+
+  private extractEmotionScores(text: string): Map<EmotionType, number> {
+    const scores = new Map<EmotionType, number>();
+    const lowerText = text.toLowerCase();
+    const words = lowerText.split(/\W+/);
+    
+    Object.entries(this.emotionKeywords).forEach(([emotion, config]) => {
+      let emotionScore = 0;
+      
+      // Check for keyword patterns
+      config.patterns.forEach(pattern => {
+        const regex = new RegExp(`\\b${pattern}\\b`, 'gi');
+        const matches = (text.match(regex) || []).length;
+        emotionScore += matches * 0.3;
+      });
+      
+      // Check for emojis
+      config.emojis.forEach(emoji => {
+        const matches = (text.match(new RegExp(emoji, 'g')) || []).length;
+        emotionScore += matches * 0.4;
+      });
+      
+      // Apply emotion weight
+      emotionScore *= config.weight;
+      
+      if (emotionScore > 0) {
+        scores.set(emotion as EmotionType, emotionScore);
+      }
+    });
+    
+    return scores;
+  }
+
+  private calculateIntensity(text: string): number {
+    let intensity = 1.0;
+    const words = text.toLowerCase().split(/\W+/);
+    
+    // Check for amplifiers
+    Object.entries(this.intensityModifiers.amplifiers).forEach(([word, multiplier]) => {
+      if (words.includes(word)) {
+        intensity *= multiplier;
+      }
+    });
+    
+    // Check for diminishers
+    Object.entries(this.intensityModifiers.diminishers).forEach(([word, multiplier]) => {
+      if (words.includes(word)) {
+        intensity *= multiplier;
+      }
+    });
+    
+    // Cap and floor intensity
+    return Math.max(0.1, Math.min(2.5, intensity));
+  }
+
+  private mapToPlutchikEmotions(
+    vaderScores: VaderScores, 
+    emotionScores: Map<EmotionType, number>,
+    intensity: number
+  ): { primary: EmotionType; confidence: number; secondary?: EmotionType } {
+    
+    // Combine VADER with emotion-specific scores
+    const combinedScores = new Map<EmotionType, number>();
+    
+    // Map VADER compound score to basic emotions
+    if (vaderScores.compound > 0.5) {
+      combinedScores.set('joy', vaderScores.compound * 0.8);
+    } else if (vaderScores.compound < -0.5) {
+      if (vaderScores.negative > 0.6) {
+        combinedScores.set('anger', Math.abs(vaderScores.compound) * 0.7);
+      } else {
+        combinedScores.set('sadness', Math.abs(vaderScores.compound) * 0.7);
+      }
+    }
+    
+    // Add emotion-specific scores
+    emotionScores.forEach((score, emotion) => {
+      const existing = combinedScores.get(emotion) || 0;
+      combinedScores.set(emotion, existing + score);
+    });
+    
+    // Sort emotions by score
+    const sortedEmotions = Array.from(combinedScores.entries())
+      .sort(([,a], [,b]) => b - a);
+    
+    if (sortedEmotions.length === 0) {
+      return { primary: 'trust', confidence: 0.1 };
+    }
+    
+    const [primaryEmotion, primaryScore] = sortedEmotions[0];
+    const confidence = Math.min(0.95, Math.max(0.1, primaryScore * intensity * 0.4));
+    
+    const secondary = sortedEmotions.length > 1 && sortedEmotions[1][1] > primaryScore * 0.6
+      ? sortedEmotions[1][0]
+      : undefined;
+    
+    return {
+      primary: primaryEmotion,
+      confidence,
+      secondary
+    };
+  }
+}
+
+export default EmotionDetectionEngine;
+```
+
+## 2. Twitter-Inspired Candidate Generation (Complete Implementation)
+
+```typescript
+// services/candidateGeneration.ts - Twitter's algorithm adapted
+interface ThreadCandidate {
+  id: string;
+  userId: string;
+  content: string;
+  hashtags: string[];
+  emotion: EmotionAnalysis;
+  createdAt: Date;
+  source: 'in_network' | 'out_network' | 'emotion_similar' | 'trending';
+  sourceScore: number;
+  engagementMetrics: EngagementMetrics;
+}
+
+interface EngagementMetrics {
+  reactions: { resonate: number; support: number; learn: number; challenge: number; amplify: number; };
+  replyCount: number;
+  shareCount: number;
+  viewCount: number;
+  reactionsPerHour: number;
+}
+
+class ThreadCandidateGenerator {
+  constructor(
+    private supabase: SupabaseClient,
+    private emotionEngine: EmotionDetectionEngine
+  ) {}
+
+  // Main candidate generation function - Twitter's approach
+  async generateCandidates(userId: string, limit: number = 500): Promise<ThreadCandidate[]> {
+    const startTime = Date.now();
+    
+    // Parallel candidate fetching (Twitter pattern)
+    const [
+      inNetworkCandidates,
+      outNetworkCandidates,
+      emotionSimilarCandidates,
+      trendingCandidates
+    ] = await Promise.all([
+      this.getInNetworkCandidates(userId, Math.floor(limit * 0.45)),
+      this.getOutNetworkCandidates(userId, Math.floor(limit * 0.35)),
+      this.getEmotionSimilarCandidates(userId, Math.floor(limit * 0.15)),
+      this.getTrendingCandidates(Math.floor(limit * 0.05))
+    ]);
+
+    const allCandidates = [
+      ...inNetworkCandidates,
+      ...outNetworkCandidates,
+      ...emotionSimilarCandidates,
+      ...trendingCandidates
+    ];
+
+    console.log(`Candidate generation took ${Date.now() - startTime}ms for ${allCandidates.length} candidates`);
+    
+    return this.deduplicateAndShuffle(allCandidates);
+  }
+
+  // In-network candidates (50% of Twitter's feed)
+  private async getInNetworkCandidates(userId: string, limit: number): Promise<ThreadCandidate[]> {
+    try {
+      // Get user's following list
+      const { data: following } = await this.supabase
+        .from('user_follows')
+        .select('following_user_id')
+        .eq('follower_user_id', userId);
+
+      if (!following || following.length === 0) {
+        return [];
+      }
+
+      const followingIds = following.map(f => f.following_user_id);
+
+      // Get recent threads from followed users
+      const { data: threads } = await this.supabase
+        .from('vibe_threads')
+        .select(`
+          id, user_id, content, hashtags, primary_emotion, emotion_confidence,
+          secondary_emotion, emotion_intensity, reaction_counts, reply_count,
+          share_count, view_count, created_at, engagement_score,
+          users:user_id (username, avatar_url)
+        `)
+        .in('user_id', followingIds)
+        .gte('created_at', new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString()) // Last 72 hours
+        .order('created_at', { ascending: false })
+        .limit(limit * 2); // Get extra for filtering
+
+      return this.formatCandidates(threads || [], 'in_network');
+    } catch (error) {
+      console.error('Error fetching in-network candidates:', error);
+      return [];
+    }
+  }
+
+  // Out-of-network candidates (discovery)
+  private async getOutNetworkCandidates(userId: string, limit: number): Promise<ThreadCandidate[]> {
+    try {
+      // Get user's interests and blocked users
+      const [userInterests, blockedUsers] = await Promise.all([
+        this.getUserInterests(userId),
+        this.getBlockedUsers(userId)
+      ]);
+
+      // Find threads with similar hashtags/topics
+      const { data: threads } = await this.supabase
+        .from('vibe_threads')
+        .select(`
+          id, user_id, content, hashtags, primary_emotion, emotion_confidence,
+          secondary_emotion, emotion_intensity, reaction_counts, reply_count,
+          share_count, view_count, created_at, engagement_score,
+          users:user_id (username, avatar_url)
+        `)
+        .not('user_id', 'in', `(${blockedUsers.join(',')})`)
+        .gte('created_at', new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString())
+        .gte('engagement_score', 0.3) // Minimum engagement threshold
+        .order('engagement_score', { ascending: false })
+        .limit(limit * 3);
+
+      // Filter by user interests
+      const relevantThreads = (threads || []).filter(thread => {
+        return thread.hashtags.some(hashtag => 
+          userInterests.topics.includes(hashtag.toLowerCase())
+        ) || userInterests.emotions.includes(thread.primary_emotion);
+      });
+
+      return this.formatCandidates(relevantThreads.slice(0, limit), 'out_network');
+    } catch (error) {
+      console.error('Error fetching out-network candidates:', error);
+      return [];
+    }
+  }
+
+  // Emotion-similar candidates (TrueVibe unique)
+  private async getEmotionSimilarCandidates(userId: string, limit: number): Promise<ThreadCandidate[]> {
+    try {
+      // Get user's emotion preferences
+      const userEmotionProfile = await this.getUserEmotionProfile(userId);
+      
+      // Find threads with compatible emotions
+      const compatibleEmotions = this.getCompatibleEmotions(userEmotionProfile.dominantEmotions);
+      
+      const { data: threads } = await this.supabase
+        .from('vibe_threads')
+        .select(`
+          id, user_id, content, hashtags, primary_emotion, emotion_confidence,
+          secondary_emotion, emotion_intensity, reaction_counts, reply_count,
+          share_count, view_count, created_at, engagement_score,
+          users:user_id (username, avatar_url)
+        `)
+        .in('primary_emotion', compatibleEmotions)
+        .gte('emotion_confidence', 0.6) // High confidence emotions only
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .order('emotion_confidence', { ascending: false })
+        .limit(limit * 2);
+
+      return this.formatCandidates(threads || [], 'emotion_similar');
+    } catch (error) {
+      console.error('Error fetching emotion-similar candidates:', error);
+      return [];
+    }
+  }
+
+  // Trending candidates
+  private async getTrendingCandidates(limit: number): Promise<ThreadCandidate[]> {
+    try {
+      const { data: threads } = await this.supabase
+        .from('vibe_threads')
+        .select(`
+          id, user_id, content, hashtags, primary_emotion, emotion_confidence,
+          secondary_emotion, emotion_intensity, reaction_counts, reply_count,
+          share_count, view_count, created_at, trending_score,
+          users:user_id (username, avatar_url)
+        `)
+        .gte('trending_score', 0.5) // Minimum trending threshold
+        .gte('created_at', new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()) // Last 12 hours
+        .order('trending_score', { ascending: false })
+        .limit(limit);
+
+      return this.formatCandidates(threads || [], 'trending');
+    } catch (error) {
+      console.error('Error fetching trending candidates:', error);
+      return [];
+    }
+  }
+
+  // Helper functions
+  private formatCandidates(threads: any[], source: ThreadCandidate['source']): ThreadCandidate[] {
+    return threads.map(thread => ({
+      id: thread.id,
+      userId: thread.user_id,
+      content: thread.content,
+      hashtags: thread.hashtags || [],
+      emotion: {
+        primary: thread.primary_emotion,
+        confidence: thread.emotion_confidence,
+        secondary: thread.secondary_emotion,
+        intensity: thread.emotion_intensity || 1.0,
+        rawScores: { compound: 0, positive: 0, negative: 0, neutral: 0 }
+      },
+      createdAt: new Date(thread.created_at),
+      source,
+      sourceScore: thread.engagement_score || thread.trending_score || 0,
+      engagementMetrics: {
+        reactions: thread.reaction_counts || { resonate: 0, support: 0, learn: 0, challenge: 0, amplify: 0 },
+        replyCount: thread.reply_count || 0,
+        shareCount: thread.share_count || 0,
+        viewCount: thread.view_count || 0,
+        reactionsPerHour: this.calculateReactionsPerHour(thread)
+      }
+    }));
+  }
+
+  private calculateReactionsPerHour(thread: any): number {
+    const ageHours = (Date.now() - new Date(thread.created_at).getTime()) / (1000 * 60 * 60);
+    const totalReactions = Object.values(thread.reaction_counts || {}).reduce((a: number, b: number) => a + b, 0);
+    return totalReactions / Math.max(ageHours, 1);
+  }
+
+  private async getUserInterests(userId: string) {
+    // Implementation for getting user interests from their activity
+    const { data: recentReactions } = await this.supabase
+      .from('user_thread_interactions')
+      .select('thread_id, interaction_subtype')
+      .eq('user_id', userId)
+      .eq('interaction_type', 'reaction')
+      .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+      .limit(100);
+
+    // Extract hashtags from threads user engaged with
+    const threadIds = recentReactions?.map(r => r.thread_id) || [];
+    
+    if (threadIds.length === 0) {
+      return { topics: [], emotions: ['joy', 'trust'] }; // Default interests
+    }
+
+    const { data: threads } = await this.supabase
+      .from('vibe_threads')
+      .select('hashtags, primary_emotion')
+      .in('id', threadIds);
+
+    const topics = [...new Set((threads || []).flatMap(t => t.hashtags || []))];
+    const emotions = [...new Set((threads || []).map(t => t.primary_emotion))];
+
+    return { topics, emotions };
+  }
+
+  private async getBlockedUsers(userId: string): Promise<string[]> {
+    const { data: blocked } = await this.supabase
+      .from('user_blocks')
+      .select('blocked_user_id')
+      .eq('blocker_user_id', userId);
+
+    return blocked?.map(b => b.blocked_user_id) || [];
+  }
+
+  private async getUserEmotionProfile(userId: string) {
+    const { data: profile } = await this.supabase
+      .from('user_emotion_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (!profile) {
+      return { dominantEmotions: ['joy', 'trust', 'anticipation'] };
+    }
+
+    // Get top 3 emotions based on preferences
+    const emotionPrefs = {
+      joy: profile.joy_preference,
+      trust: profile.trust_preference,
+      fear: profile.fear_preference,
+      surprise: profile.surprise_preference,
+      sadness: profile.sadness_preference,
+      disgust: profile.disgust_preference,
+      anger: profile.anger_preference,
+      anticipation: profile.anticipation_preference
+    };
+
+    const dominantEmotions = Object.entries(emotionPrefs)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3)
+      .map(([emotion]) => emotion);
+
+    return { dominantEmotions };
+  }
+
+  private getCompatibleEmotions(dominantEmotions: string[]): string[] {
+    const emotionCompatibility = {
+      joy: ['joy', 'trust', 'anticipation', 'surprise'],
+      trust: ['trust', 'joy', 'anticipation'],
+      fear: ['fear', 'sadness', 'anger'],
+      surprise: ['surprise', 'joy', 'fear', 'anticipation'],
+      sadness: ['sadness', 'fear', 'anger'],
+      disgust: ['disgust', 'anger', 'fear'],
+      anger: ['anger', 'disgust', 'fear'],
+      anticipation: ['anticipation', 'joy', 'trust', 'surprise']
+    };
+
+    const compatible = new Set<string>();
+    dominantEmotions.forEach(emotion => {
+      emotionCompatibility[emotion]?.forEach(comp => compatible.add(comp));
+    });
+
+    return Array.from(compatible);
+  }
+
+  private deduplicateAndShuffle(candidates: ThreadCandidate[]): ThreadCandidate[] {
+    // Remove duplicates by ID
+    const seen = new Set<string>();
+    const unique = candidates.filter(candidate => {
+      if (seen.has(candidate.id)) return false;
+      seen.add(candidate.id);
+      return true;
+    });
+
+    // Shuffle while maintaining some source balance
+    const shuffled: ThreadCandidate[] = [];
+    const bySources = {
+      in_network: unique.filter(c => c.source === 'in_network'),
+      out_network: unique.filter(c => c.source === 'out_network'),
+      emotion_similar: unique.filter(c => c.source === 'emotion_similar'),
+      trending: unique.filter(c => c.source === 'trending')
+    };
+
+    // Interleave sources
+    const maxLength = Math.max(...Object.values(bySources).map(arr => arr.length));
+    for (let i = 0; i < maxLength; i++) {
+      Object.values(bySources).forEach(sourceArray => {
+        if (i < sourceArray.length) {
+          shuffled.push(sourceArray[i]);
+        }
+      });
+    }
+
+    return shuffled;
+  }
+}
+
+export default ThreadCandidateGenerator;
+```
+
+## 3. Complete Ranking System Implementation
+
+```typescript
+// services/threadRanking.ts - Twitter's Light + Heavy Ranker Implementation
+interface RankingFeatures {
+  // Temporal features
+  threadAgeHours: number;
+  hourOfDay: number;
+  dayOfWeek: number;
+  
+  // Content features
+  contentLength: number;
+  hasHashtags: boolean;
+  hashtagCount: number;
+  hasLinks: boolean;
+  isReply: boolean;
+  
+  // Engagement features
+  totalReactions: number;
+  reactionsPerHour: number;
+  replyCount: number;
+  shareCount: number;
+  engagementVelocity: number;
+  
+  // Social features
+  isFollowing: boolean;
+  mutualConnections: number;
+  authorFollowerCount: number;
+  authorEngagementRate: number;
+  
+  // Emotion features
+  emotionConfidence: number;
+  emotionAlignment: number;
+  emotionIntensity: number;
+  
+  // Quality features
+  qualityScore: number;
+  toxicityScore: number;
+  spamScore: number;
+}
+
+interface RankedCandidate {
+  candidate: ThreadCandidate;
+  features: RankingFeatures;
+  lightRankScore: number;
+  heavyRankScore: number;
+  finalScore: number;
+}
+
+class ThreadRankingPipeline {
+  constructor(private supabase: SupabaseClient) {}
+
+  async rankCandidates(
+    candidates: ThreadCandidate[],
+    userId: string,
+    limit: number = 50
+  ): Promise<RankedCandidate[]> {
+    
+    // Step 1: Extract features for all candidates
+    const candidatesWithFeatures = await this.extractFeatures(candidates, userId);
+    
+    // Step 2: Light Ranker (reduce from thousands to hundreds)
+    const lightRanked = this.lightRanker(candidatesWithFeatures);
+    
+    // Step 3: Heavy Ranker (ML-based scoring on top candidates)
+    const heavyRanked = await this.heavyRanker(lightRanked.slice(0, 200), userId);
+    
+    // Step 4: Final filtering and diversity
+    const finalRanked = this.applyFinalFilters(heavyRanked, userId);
+    
+    return finalRanked.slice(0, limit);
+  }
+
+  // Feature extraction for ranking
+  private async extractFeatures(
+    candidates: ThreadCandidate[],
+    userId: string
+  ): Promise<Array<{ candidate: ThreadCandidate; features: RankingFeatures }>> {
+    
+    const userSocialData = await this.getUserSocialData(userId);
+    const userEmotionProfile = await this.getUserEmotionProfile(userId);
+    
+    return candidates.map(candidate => ({
+      candidate,
+      features: this.calculateFeatures(candidate, userSocialData, userEmotionProfile)
+    }));
+  }
+
+  private calculateFeatures(
+    candidate: ThreadCandidate,
+    userSocialData: any,
+    userEmotionProfile: any
+  ): RankingFeatures {
+    const now = Date.now();
+    const threadAge = now - candidate.createdAt.getTime();
+    const threadAgeHours = threadAge / (1000 * 60 * 60);
+    
+    return {
+      // Temporal features
+      threadAgeHours,
+      hourOfDay: candidate.createdAt.getHours(),
+      dayOfWeek: candidate.createdAt.getDay(),
+      
+      // Content features
+      contentLength: candidate.content.length,
+      hasHashtags: candidate.hashtags.length > 0,
+      hashtagCount: candidate.hashtags.length,
+      hasLinks: candidate.content.includes('http'),
+      isReply: false, // Implement based on thread structure
+      
+      // Engagement features
+      totalReactions: Object.values(candidate.engagementMetrics.reactions).reduce((a, b) => a + b, 0),
+      reactionsPerHour: candidate.engagementMetrics.reactionsPerHour,
+      replyCount: candidate.engagementMetrics.replyCount,
+      shareCount: candidate.engagementMetrics.shareCount,
+      engagementVelocity: this.calculateEngagementVelocity(candidate),
+      
+      // Social features
+      isFollowing: userSocialData.following.includes(candidate.userId),
+      mutualConnections: userSocialData.mutualConnections[candidate.userId] || 0,
+      authorFollowerCount: 1000, // Fetch from user data
+      authorEngagementRate: 0.05, // Calculate from historical data
+      
+      // Emotion features
+      emotionConfidence: candidate.emotion.confidence,
+      emotionAlignment: this.calculateEmotionAlignment(candidate.emotion, userEmotionProfile),
+      emotionIntensity: candidate.emotion.intensity,
+      
+      // Quality features (implement with actual quality scoring)
+      qualityScore: this.calculateQualityScore(candidate),
+      toxicityScore: 0.1, // Implement with content moderation API
+      spamScore: 0.05 // Implement with spam detection
+    };
+  }
+
+  // Light Ranker Implementation (Twitter's fast heuristic approach)
+  private lightRanker(
+    candidatesWithFeatures: Array<{ candidate: ThreadCandidate; features: RankingFeatures }>
+  ): RankedCandidate[] {
+    
+    return candidatesWithFeatures.map(({ candidate, features }) => {
+      let score = 0;
+      
+      // 1. Recency Score (exponential decay)
+      const recencyScore = Math.exp(-features.threadAgeHours / 24) * 0.25;
+      score += recencyScore;
+      
+      // 2. Engagement Score
+      const engagementScore = Math.log(1 + features.totalReactions) * 0.15 +
+                            Math.log(1 + features.reactionsPerHour) * 0.10 +
+                            Math.log(1 + features.replyCount) * 0.08;
+      score += engagementScore;
+      
+      // 3. Social Score
+      let socialScore = 0;
+      if (features.isFollowing) socialScore += 0.30;
+      socialScore += Math.min(features.mutualConnections * 0.05, 0.15);
+      score += socialScore;
+      
+      // 4. Content Quality Score
+      const qualityScore = features.qualityScore * 0.15 - 
+                          features.toxicityScore * 0.20 - 
+                          features.spamScore * 0.25;
+      score += qualityScore;
+      
+      // 5. Emotion Alignment Score (TrueVibe unique)
+      const emotionScore = features.emotionAlignment * 0.12 + 
+                          features.emotionConfidence * 0.08;
+      score += emotionScore;
+      
+      // 6. Source Score Bonus
+      const sourceBonus = candidate.sourceScore * 0.05;
+      score += sourceBonus;
+      
+      // 7. Diversity Penalty (avoid too much similar content)
+      // This would be calculated based on recent user interactions
+      const diversityPenalty = 0; // Implement based on recent feed
+      score -= diversityPenalty;
+      
+      return {
+        candidate,
+        features,
+        lightRankScore: Math.max(0, score),
+        heavyRankScore: 0,
+        finalScore: 0
+      };
+    }).sort((a, b) => b.lightRankScore - a.lightRankScore);
+  }
+
+  // Heavy Ranker Implementation (ML-based)
+  private async heavyRanker(
+    lightRanked: RankedCandidate[],
+    userId: string
+  ): Promise<RankedCandidate[]> {
+    
+    // In a real implementation, this would call an ML model
+    // For now, we'll use a sophisticated heuristic that mimics ML scoring
+    
+    const userContext = await this.getUserContext(userId);
+    
+    return lightRanked.map(ranked => {
+      const features = ranked.features;
+      const candidate = ranked.candidate;
+      
+      // Simulate ML model prediction with weighted feature combination
+      let mlScore = 0;
+      
+      // Engagement prediction component
+      const engagementProb = this.predictEngagementProbability(features, userContext);
+      mlScore += engagementProb * 0.35;
+      
+      // Dwell time prediction component  
+      const dwellTimeProb = this.predictDwellTime(features, userContext);
+      mlScore += dwellTimeProb * 0.25;
+      
+      // Positive reaction prediction
+      const positiveReactionProb = this.predictPositiveReaction(features, userContext);
+      mlScore += positiveReactionProb * 0.20;
+      
+      // Share/amplify prediction
+      const shareProb = this.predictShareProbability(features, userContext);
+      mlScore += shareProb * 0.20;
+      
+      // Combine light rank and ML scores
+      const finalScore = ranked.lightRankScore * 0.4 + mlScore * 0.6;
+      
+      return {
+        ...ranked,
+        heavyRankScore: mlScore,
+        finalScore
+      };
+    }).sort((a, b) => b.finalScore - a.finalScore);
+  }
+
+  // ML prediction simulations (replace with actual ML model calls)
+  private predictEngagementProbability(features: RankingFeatures, userContext: any): number {
+    let prob = 0.1; // Base probability
+    
+    // Social signals
+    if (features.isFollowing) prob += 0.3;
+    prob += Math.min(features.mutualConnections * 0.05, 0.2);
+    
+    // Content signals
+    if (features.hasHashtags && userContext.likesHashtags) prob += 0.15;
+    if (features.contentLength > 50 && features.contentLength < 200) prob += 0.1;
+    
+    // Emotion signals
+    prob += features.emotionAlignment * 0.2;
+    prob += features.emotionConfidence * 0.1;
+    
+    // Quality signals
+    prob += features.qualityScore * 0.15;
+    prob -= features.toxicityScore * 0.3;
+    
+    // Temporal signals
+    if (this.isUserActiveTime(features.hourOfDay, userContext)) prob += 0.1;
+    
+    return Math.max(0, Math.min(1, prob));
+  }
+
+  private predictDwellTime(features: RankingFeatures, userContext: any): number {
+    let prob = 0.15; // Base probability for >30s dwell time
+    
+    // Content length correlation with dwell time
+    if (features.contentLength > 100) prob += 0.2;
+    if (features.contentLength > 200) prob += 0.1;
+    
+    // Emotion intensity correlation
+    prob += features.emotionIntensity * 0.15;
+    
+    // Quality content tends to have longer dwell times
+    prob += features.qualityScore * 0.2;
+    
+    // Social proof
+    prob += Math.log(1 + features.totalReactions) * 0.1;
+    
+    return Math.max(0, Math.min(1, prob));
+  }
+
+  private predictPositiveReaction(features: RankingFeatures, userContext: any): number {
+    let prob = 0.05; // Base probability
+    
+    // Strong emotion alignment increases positive reaction likelihood
+    prob += features.emotionAlignment * 0.4;
+    
+    // High confidence emotions
+    if (features.emotionConfidence > 0.7) prob += 0.2;
+    
+    // Social signals
+    if (features.isFollowing) prob += 0.25;
+    
+    // Already popular content
+    prob += Math.min(features.reactionsPerHour * 0.02, 0.3);
+    
+    return Math.max(0, Math.min(1, prob));
+  }
+
+  private predictShareProbability(features: RankingFeatures, userContext: any): number {
+    let prob = 0.02; // Base probability (sharing is rare)
+    
+    // High-quality, emotional content gets shared more
+    if (features.emotionIntensity > 1.5 && features.qualityScore > 0.7) prob += 0.15;
+    
+    // Trending content
+    if (features.totalReactions > 10) prob += 0.1;
+    
+    // Trusted sources
+    if (features.isFollowing && features.authorEngagementRate > 0.1) prob += 0.08;
+    
+    return Math.max(0, Math.min(1, prob));
+  }
+
+  // Apply final filters and diversity (Twitter's approach)
+  private applyFinalFilters(ranked: RankedCandidate[], userId: string): RankedCandidate[] {
+    let filtered = [...ranked];
+    
+    // 1. Author diversity - max 2 threads per author in top 30
+    filtered = this.applyAuthorDiversity(filtered);
+    
+    // 2. Emotion diversity - prevent emotion fatigue
+    filtered = this.applyEmotionDiversity(filtered);
+    
+    // 3. Content type balance
+    filtered = this.applyContentBalance(filtered);
+    
+    return filtered;
+  }
+
+  private applyAuthorDiversity(candidates: RankedCandidate[]): RankedCandidate[] {
+    const authorCounts = new Map<string, number>();
+    const diverseResults: RankedCandidate[] = [];
+    
+    for (const candidate of candidates) {
+      const authorId = candidate.candidate.userId;
+      const currentCount = authorCounts.get(authorId) || 0;
+      
+      // Allow max 2 threads per author in top 30, then unlimited
+      if (diverseResults.length < 30 && currentCount < 2) {
+        diverseResults.push(candidate);
+        authorCounts.set(authorId, currentCount + 1);
+      } else if (diverseResults.length >= 30) {
+        diverseResults.push(candidate);
+      }
+    }
+    
+    return diverseResults;
+  }
+
+  private applyEmotionDiversity(candidates: RankedCandidate[]): RankedCandidate[] {
+    const emotionCounts = new Map<string, number>();
+    const diverseResults: RankedCandidate[] = [];
+    
+    for (const candidate of candidates) {
+      const emotion = candidate.candidate.emotion.primary;
+      const currentCount = emotionCounts.get(emotion) || 0;
+      
+      // Prevent more than 3 consecutive same emotions
+      if (currentCount < 3 || candidate.finalScore > 0.8) { // High-quality content bypasses filter
+        diverseResults.push(candidate);
+        emotionCounts.set(emotion, currentCount + 1);
+      }
+    }
+    
+    return diverseResults;
+  }
+
+  private applyContentBalance(candidates: RankedCandidate[]): RankedCandidate[] {
+    // Ensure balance between in-network and out-of-network content
+    const inNetwork = candidates.filter(c => c.candidate.source === 'in_network');
+    const outOfNetwork = candidates.filter(c => c.candidate.source !== 'in_network');
+    
+    const balanced: RankedCandidate[] = [];
+    const maxLength = Math.max(inNetwork.length, outOfNetwork.length);
+    
+    // Interleave 60% in-network, 40% out-of-network
+    for (let i = 0; i < maxLength; i++) {
+      if (i < inNetwork.length && balanced.filter(c => c.candidate.source === 'in_network').length < candidates.length * 0.6) {
+        balanced.push(inNetwork[i]);
+      }
+      if (i < outOfNetwork.length && balanced.filter(c => c.candidate.source !== 'in_network').length < candidates.length * 0.4) {
+        balanced.push(outOfNetwork[i]);
+      }
+    }
+    
+    return balanced;
+  }
+
+  // Helper functions
+  private calculateEngagementVelocity(candidate: ThreadCandidate): number {
+    const ageHours = (Date.now() - candidate.createdAt.getTime()) / (1000 * 60 * 60);
+    const totalEngagement = Object.values(candidate.engagementMetrics.reactions).reduce((a, b) => a + b, 0) +
+                           candidate.engagementMetrics.replyCount +
+                           candidate.engagementMetrics.shareCount;
+    
+    return totalEngagement / Math.max(ageHours, 1);
+  }
+
+  private calculateEmotionAlignment(emotion: EmotionAnalysis, userProfile: any): number {
+    if (!userProfile || !userProfile.dominantEmotions) return 0.5;
+    
+    const emotionWeights = {
+      [emotion.primary]: 1.0,
+      [emotion.secondary || '']: 0.6
+    };
+    
+    let alignment = 0;
+    userProfile.dominantEmotions.forEach((userEmotion: string, index: number) => {
+      const weight = 1.0 - (index * 0.2); // Decreasing importance
+      if (emotionWeights[userEmotion]) {
+        alignment += emotionWeights[userEmotion] * weight;
+      }
+    });
+    
+    return Math.min(1, alignment / userProfile.dominantEmotions.length);
+  }
+
+  private calculateQualityScore(candidate: ThreadCandidate): number {
+    let score = 0.5; // Base score
+    
+    // Content length sweet spot
+    if (candidate.content.length > 30 && candidate.content.length < 250) score += 0.2;
+    
+    // Has hashtags but not too many
+    if (candidate.hashtags.length > 0 && candidate.hashtags.length <= 3) score += 0.1;
+    
+    // Good engagement relative to age
+    if (candidate.engagementMetrics.reactionsPerHour > 1) score += 0.2;
+    
+    // High emotion confidence
+    if (candidate.emotion.confidence > 0.7) score += 0.1;
+    
+    return Math.min(1, score);
+  }
+
+  private async getUserSocialData(userId: string) {
+    const { data: following } = await this.supabase
+      .from('user_follows')
+      .select('following_user_id')
+      .eq('follower_user_id', userId);
+
+    return {
+      following: following?.map(f => f.following_user_id) || [],
+      mutualConnections: {} // Implement mutual connections lookup
+    };
+  }
+
+  private async getUserEmotionProfile(userId: string) {
+    const { data: profile } = await this.supabase
+      .from('user_emotion_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (!profile) {
+      return { dominantEmotions: ['joy', 'trust', 'anticipation'] };
+    }
+
+    const emotions = [
+      { emotion: 'joy', score: profile.joy_preference },
+      { emotion: 'trust', score: profile.trust_preference },
+      { emotion: 'fear', score: profile.fear_preference },
+      { emotion: 'surprise', score: profile.surprise_preference },
+      { emotion: 'sadness', score: profile.sadness_preference },
+      { emotion: 'disgust', score: profile.disgust_preference },
+      { emotion: 'anger', score: profile.anger_preference },
+      { emotion: 'anticipation', score: profile.anticipation_preference }
+    ];
+
+    const dominantEmotions = emotions
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map(e => e.emotion);
+
+    return { dominantEmotions };
+  }
+
+  private async getUserContext(userId: string) {
+    // Simplified user context - expand based on available data
+    return {
+      likesHashtags: true,
+      activeHours: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
+      preferredContentLength: 150
+    };
+  }
+
+  private isUserActiveTime(hour: number, userContext: any): boolean {
+    return userContext.activeHours?.includes(hour) || false;
+  }
+}
+
+export default ThreadRankingPipeline;
+```
+
+## 4. Complete Real-time Reaction System
+
+```typescript
+// services/reactionSystem.ts - Complete Five-Reaction Implementation
+type ReactionType = 'resonate' | 'support' | 'learn' | 'challenge' | 'amplify';
+
+interface ReactionEvent {
+  userId: string;
+  threadId: string;
+  reactionType: ReactionType;
+  timestamp: Date;
+  context: {
+    deviceType: string;
+    sessionId: string;
+    sourceLocation: string;
+  };
+}
+
+class FiveReactionSystem {
+  constructor(
+    private supabase: SupabaseClient,
+    private realtimeClient: SupabaseClient
+  ) {}
+
+  async processReaction(event: ReactionEvent): Promise<{
+    success: boolean;
+    newCounts: Record<ReactionType, number>;
+    rankingImpact: number;
+  }> {
+    const startTime = Date.now();
+    
+    try {
+      // 1. Check if user already reacted with this type
+      const existingReaction = await this.checkExistingReaction(
+        event.userId, 
+        event.threadId, 
+        event.reactionType
+      );
+      
+      if (existingReaction) {
+        // Remove existing reaction
+        await this.removeReaction(event.userId, event.threadId, event.reactionType);
+        return {
+          success: true,
+          newCounts: await this.getReactionCounts(event.threadId),
+          rankingImpact: 0
+        };
+      }
+      
+      // 2. Remove any other reaction from this user on this thread
+      await this.removeAllUserReactions(event.userId, event.threadId);
+      
+      // 3. Add new reaction
+      await this.addReaction(event);
+      
+      // 4. Update thread engagement metrics
+      const rankingImpact = await this.updateThreadEngagement(event);
+      
+      // 5. Update user behavior signals
+      await this.updateUserBehaviorSignals(event);
+      
+      // 6. Update user emotion preferences
+      await this.updateUserEmotionPreferences(event);
+      
+      // 7. Trigger real-time updates
+      await this.broadcastReactionUpdate(event);
+      
+      // 8. Update trending metrics if applicable
+      await this.updateTrendingMetrics(event);
+      
+      const newCounts = await this.getReactionCounts(event.threadId);
+      
+      console.log(`Reaction processed in ${Date.now() - startTime}ms`);
+      
+      return {
+        success: true,
+        newCounts,
+        rankingImpact
+      };
+      
+    } catch (error) {
+      console.error('Error processing reaction:', error);
+      return {
+        success: false,
+        newCounts: await this.getReactionCounts(event.threadId),
+        rankingImpact: 0
+      };
+    }
+  }
+
+  private async checkExistingReaction(
+    userId: string, 
+    threadId: string, 
+    reactionType: ReactionType
+  ): Promise<boolean> {
+    const { data } = await this.supabase
+      .from('user_thread_interactions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('thread_id', threadId)
+      .eq('interaction_type', 'reaction')
+      .eq('interaction_subtype', reactionType)
+      .single();
+      
+    return !!data;
+  }
+
+  private async removeReaction(
+    userId: string, 
+    threadId: string, 
+    reactionType: ReactionType
+  ): Promise<void> {
+    // Remove from interactions table
+    await this.supabase
+      .from('user_thread_interactions')
+      .delete()
+      .eq('user_id', userId)
+      .eq('thread_id', threadId)
+      .eq('interaction_type', 'reaction')
+      .eq('interaction_subtype', reactionType);
+    
+    // Update thread reaction counts
+    await this.supabase.rpc('decrement_reaction_count', {
+      thread_id: threadId,
+      reaction_type: reactionType
+    });
+  }
+
+  private async removeAllUserReactions(userId: string, threadId: string): Promise<void> {
+    // Get existing reactions to decrement counts
+    const { data: existing } = await this.supabase
+      .from('user_thread_interactions')
+      .select('interaction_subtype')
+      .eq('user_id', userId)
+      .eq('thread_id', threadId)
+      .eq('interaction_type', 'reaction');
+    
+    if (existing && existing.length > 0) {
+      // Remove all existing reactions
+      await this.supabase
+        .from('user_thread_interactions')
+        .delete()
+        .eq('user_id', userId)
+        .eq('thread_id', threadId)
+        .eq('interaction_type', 'reaction');
+      
+      // Decrement counts for each existing reaction
+      for (const reaction of existing) {
+        await this.supabase.rpc('decrement_reaction_count', {
+          thread_id: threadId,
+          reaction_type: reaction.interaction_subtype
+        });
+      }
+    }
+  }
+
+  private async addReaction(event: ReactionEvent): Promise<void> {
+    // Add to interactions table
+    await this.supabase
+      .from('user_thread_interactions')
+      .insert({
+        user_id: event.userId,
+        thread_id: event.threadId,
+        interaction_type: 'reaction',
+        interaction_subtype: event.reactionType,
+        device_type: event.context.deviceType,
+        session_id: event.context.sessionId,
+        source_location: event.context.sourceLocation,
+        created_at: event.timestamp.toISOString()
+      });
+    
+    // Update thread reaction counts
+    await this.supabase.rpc('increment_reaction_count', {
+      thread_id: event.threadId,
+      reaction_type: event.reactionType
+    });
+  }
+
+  private async updateThreadEngagement(event: ReactionEvent): Promise<number> {
+    // Get current thread data
+    const { data: thread } = await this.supabase
+      .from('vibe_threads')
+      .select('reaction_counts, created_at, engagement_score')
+      .eq('id', event.threadId)
+      .single();
+    
+    if (!thread) return 0;
+    
+    // Calculate reaction impact based on type and timing
+    const reactionWeights = {
+      resonate: 1.0,
+      support: 0.8,
+      learn: 0.6,
+      challenge: 0.4,
+      amplify: 1.5
+    };
+    
+    const baseImpact = reactionWeights[event.reactionType];
+    
+    // Time decay factor
+    const ageHours = (Date.now() - new Date(thread.created_at).getTime()) / (1000 * 60 * 60);
+    const timeFactor = Math.exp(-ageHours / 24); // 24-hour decay
+    
+    // User authority factor (implement based on user reputation)
+    const userAuthority = await this.getUserAuthority(event.userId);
+    const authorityFactor = 1 + (userAuthority * 0.5);
+    
+    const rankingImpact = baseImpact * timeFactor * authorityFactor;
+    
+    // Update engagement score
+    const newEngagementScore = thread.engagement_score + (rankingImpact * 0.1);
+    
+    await this.supabase
+      .from('vibe_threads')
+      .update({ 
+        engagement_score: newEngagementScore,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', event.threadId);
+    
+    return rankingImpact;
+  }
+
+  private async updateUserBehaviorSignals(event: ReactionEvent): Promise<void> {
+    // Get thread emotion for user preference learning
+    const { data: thread } = await this.supabase
+      .from('vibe_threads')
+      .select('primary_emotion, hashtags')
+      .eq('id', event.threadId)
+      .single();
+    
+    if (!thread) return;
+    
+    // Update user's interaction patterns
+    await this.supabase.rpc('update_user_interaction_patterns', {
+      user_id: event.userId,
+      emotion: thread.primary_emotion,
+      reaction_type: event.reactionType,
+      hashtags: thread.hashtags,
+      timestamp: event.timestamp.toISOString()
+    });
+  }
+
+  private async updateUserEmotionPreferences(event: ReactionEvent): Promise<void> {
+    // Get thread emotion
+    const { data: thread } = await this.supabase
+      .from('vibe_threads')
+      .select('primary_emotion, emotion_confidence')
+      .eq('id', event.threadId)
+      .single();
+    
+    if (!thread) return;
+    
+    // Calculate preference adjustment based on reaction type
+    const preferenceAdjustments = {
+      resonate: 0.1,    // Strong positive signal
+      support: 0.08,    // Positive signal
+      learn: 0.05,      // Mild positive signal
+      challenge: -0.02, // Mild negative signal
+      amplify: 0.12     // Strongest positive signal
+    };
+    
+    const adjustment = preferenceAdjustments[event.reactionType] * thread.emotion_confidence;
+    
+    // Update user emotion profile
+    await this.supabase.rpc('adjust_emotion_preference', {
+      user_id: event.userId,
+      emotion: thread.primary_emotion,
+      adjustment: adjustment
+    });
+  }
+
+  private async broadcastReactionUpdate(event: ReactionEvent): Promise<void> {
+    const newCounts = await this.getReactionCounts(event.threadId);
+    
+    // Send real-time update to all connected clients
+    await this.realtimeClient.channel(`thread_${event.threadId}`)
+      .send({
+        type: 'broadcast',
+        event: 'reaction_update',
+        payload: {
+          threadId: event.threadId,
+          reactionType: event.reactionType,
+          newCounts,
+          userId: event.userId
+        }
+      });
+  }
+
+  private async updateTrendingMetrics(event: ReactionEvent): Promise<void> {
+    // Get thread hashtags
+    const { data: thread } = await this.supabase
+      .from('vibe_threads')
+      .select('hashtags, primary_emotion')
+      .eq('id', event.threadId)
+      .single();
+    
+    if (!thread || !thread.hashtags) return;
+    
+    // Update hashtag trending metrics
+    for (const hashtag of thread.hashtags) {
+      await this.supabase.rpc('update_hashtag_trending', {
+        hashtag: hashtag,
+        emotion: thread.primary_emotion,
+        reaction_type: event.reactionType,
+        timestamp: event.timestamp.toISOString()
+      });
+    }
+  }
+
+  async getReactionCounts(threadId: string): Promise<Record<ReactionType, number>> {
+    const { data: thread } = await this.supabase
+      .from('vibe_threads')
+      .select('reaction_counts')
+      .eq('id', threadId)
+      .single();
+    
+    if (!thread || !thread.reaction_counts) {
+      return { resonate: 0, support: 0, learn: 0, challenge: 0, amplify: 0 };
+    }
+    
+    return thread.reaction_counts;
+  }
+
+  private async getUserAuthority(userId: string): Promise<number> {
+    // Implement user authority/reputation calculation
+    // For now, return a default value
+    const { data: user } = await this.supabase
+      .from('users')
+      .select('created_at')
+      .eq('id', userId)
+      .single();
+    
+    if (!user) return 0.1;
+    
+    // Simple authority based on account age
+    const accountAgeMonths = (Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24 * 30);
+    return Math.min(1, accountAgeMonths / 12); // Max authority of 1.0 after 1 year
+  }
+}
+
+export default FiveReactionSystem;
+```
+
+## 5. Database Functions (SQL - Copy These Exactly)
+
+```sql
+-- Copy these SQL functions into your Supabase SQL editor
+
+-- Function to increment reaction counts atomically
+CREATE OR REPLACE FUNCTION increment_reaction_count(thread_id UUID, reaction_type TEXT)
+RETURNS void AS $$
+BEGIN
+  UPDATE vibe_threads 
+  SET reaction_counts = jsonb_set(
+    reaction_counts, 
+    ARRAY[reaction_type], 
+    (COALESCE((reaction_counts->>reaction_type)::integer, 0) + 1)::text::jsonb
+  )
+  WHERE id = thread_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to decrement reaction counts atomically
+CREATE OR REPLACE FUNCTION decrement_reaction_count(thread_id UUID, reaction_type TEXT)
+RETURNS void AS $$
+BEGIN
+  UPDATE vibe_threads 
+  SET reaction_counts = jsonb_set(
+    reaction_counts, 
+    ARRAY[reaction_type], 
+    (GREATEST(COALESCE((reaction_counts->>reaction_type)::integer, 0) - 1, 0))::text::jsonb
+  )
+  WHERE id = thread_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to update user emotion preferences
+CREATE OR REPLACE FUNCTION adjust_emotion_preference(
+  user_id UUID, 
+  emotion TEXT, 
+  adjustment FLOAT
+)
+RETURNS void AS $$
+DECLARE
+  preference_column TEXT;
+  current_value FLOAT;
+  new_value FLOAT;
+BEGIN
+  preference_column := emotion || '_preference';
+  
+  -- Get current preference
+  EXECUTE format('SELECT %I FROM user_emotion_profiles WHERE user_id = $1', preference_column)
+  INTO current_value
+  USING user_id;
+  
+  -- Calculate new value (clamped between 0 and 1)
+  new_value := GREATEST(0, LEAST(1, COALESCE(current_value, 0.5) + adjustment));
+  
+  -- Insert or update
+  EXECUTE format('
+    INSERT INTO user_emotion_profiles (user_id, %I, updated_at) 
+    VALUES ($1, $2, NOW())
+    ON CONFLICT (user_id) 
+    DO UPDATE SET %I = $2, updated_at = NOW()
+  ', preference_column, preference_column)
+  USING user_id, new_value;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to update hashtag trending metrics
+CREATE OR REPLACE FUNCTION update_hashtag_trending(
+  hashtag TEXT,
+  emotion TEXT,
+  reaction_type TEXT,
+  timestamp TIMESTAMPTZ
+)
+RETURNS void AS $$
+BEGIN
+  INSERT INTO hashtag_trending_metrics (
+    hashtag, 
+    mention_count_1h, 
+    mention_count_24h, 
+    unique_users_1h,
+    emotion_distribution,
+    last_updated
+  )
+  VALUES (
+    hashtag, 
+    1, 
+    1, 
+    1,
+    jsonb_build_object(emotion, 1),
+    timestamp
+  )
+  ON CONFLICT (hashtag) DO UPDATE SET
+    mention_count_1h = hashtag_trending_metrics.mention_count_1h + 1,
+    mention_count_24h = hashtag_trending_metrics.mention_count_24h + 1,
+    emotion_distribution = jsonb_set(
+      hashtag_trending_metrics.emotion_distribution,
+      ARRAY[emotion],
+      (COALESCE((hashtag_trending_metrics.emotion_distribution->>emotion)::integer, 0) + 1)::text::jsonb
+    ),
+    last_updated = timestamp;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to calculate trending scores (run periodically)
+CREATE OR REPLACE FUNCTION calculate_trending_scores()
+RETURNS void AS $$
+BEGIN
+  UPDATE hashtag_trending_metrics SET
+    velocity_1h = CASE 
+      WHEN mention_count_24h > 0 
+      THEN mention_count_1h::float / (mention_count_24h::float / 24.0)
+      ELSE 0 
+    END,
+    trending_score = (
+      (mention_count_1h::float * 2.0) +  -- Recent activity weight
+      (unique_users_1h::float * 1.5) +   -- User diversity weight
+      (CASE WHEN mention_count_1h > mention_count_24h / 24.0 THEN mention_count_1h::float * 0.5 ELSE 0 END) -- Acceleration bonus
+    );
+END;
+$$ LANGUAGE plpgsql;
+```
+
+## 6. Complete Feed Generation API
+
+```typescript
+// pages/api/feed.ts - Complete Feed API Implementation

@@ -8,7 +8,9 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   username TEXT UNIQUE,
   email TEXT,
   avatar_url TEXT,
-  adjectives TEXT[] DEFAULT '{}',
+  adjective_one TEXT,
+  adjective_two TEXT,
+  adjective_three TEXT,
   bio TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -19,10 +21,13 @@ CREATE TABLE IF NOT EXISTS threads (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   content TEXT NOT NULL,
-  image_url TEXT,
   emotion TEXT,
-  confidence DECIMAL,
+  emotion_score DECIMAL DEFAULT 0,
   hashtags TEXT[] DEFAULT '{}',
+  media_url TEXT,
+  media_type TEXT,
+  reaction_counts JSONB DEFAULT '{}',
+  visibility TEXT DEFAULT 'public' CHECK (visibility IN ('public', 'friends', 'private')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -32,7 +37,7 @@ CREATE TABLE IF NOT EXISTS reactions (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   thread_id UUID REFERENCES threads(id) ON DELETE CASCADE NOT NULL,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('resonate', 'support', 'learn', 'challenge', 'amplify')),
+  reaction_type TEXT NOT NULL CHECK (reaction_type IN ('resonate', 'support', 'learn', 'challenge', 'amplify')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(thread_id, user_id)
 );
@@ -42,7 +47,7 @@ CREATE TABLE IF NOT EXISTS stories (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   content TEXT,
-  image_url TEXT,
+  media_url TEXT,
   emotion_theme TEXT,
   privacy TEXT DEFAULT 'public' CHECK (privacy IN ('public', 'friends')),
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -74,20 +79,19 @@ ALTER TABLE stories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hashtags ENABLE ROW LEVEL SECURITY;
 
 -- User profiles policies
-CREATE POLICY "Users can view all profiles" ON user_profiles FOR SELECT USING (true);
-CREATE POLICY "Users can update own profile" ON user_profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Public profiles are viewable by everyone" ON user_profiles FOR SELECT USING (true);
 CREATE POLICY "Users can insert own profile" ON user_profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON user_profiles FOR UPDATE USING (auth.uid() = id);
 
 -- Threads policies
-CREATE POLICY "Users can view all threads" ON threads FOR SELECT USING (true);
+CREATE POLICY "Public threads are viewable by everyone" ON threads FOR SELECT USING (visibility = 'public' OR auth.uid() = user_id);
 CREATE POLICY "Users can insert own threads" ON threads FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own threads" ON threads FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete own threads" ON threads FOR DELETE USING (auth.uid() = user_id);
 
 -- Reactions policies
-CREATE POLICY "Users can view all reactions" ON reactions FOR SELECT USING (true);
+CREATE POLICY "Anyone can view reactions" ON reactions FOR SELECT USING (true);
 CREATE POLICY "Users can insert own reactions" ON reactions FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update own reactions" ON reactions FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete own reactions" ON reactions FOR DELETE USING (auth.uid() = user_id);
 
 -- Stories policies
@@ -102,31 +106,6 @@ CREATE POLICY "Users can delete own stories" ON stories FOR DELETE USING (auth.u
 CREATE POLICY "Users can view all hashtags" ON hashtags FOR SELECT USING (true);
 CREATE POLICY "Authenticated users can insert hashtags" ON hashtags FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 CREATE POLICY "Authenticated users can update hashtags" ON hashtags FOR UPDATE USING (auth.role() = 'authenticated');
-
--- Create storage buckets
-INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT DO NOTHING;
-INSERT INTO storage.buckets (id, name, public) VALUES ('thread-images', 'thread-images', true) ON CONFLICT DO NOTHING;
-INSERT INTO storage.buckets (id, name, public) VALUES ('stories', 'stories', true) ON CONFLICT DO NOTHING;
-
--- Storage policies
-CREATE POLICY "Avatar images are publicly accessible" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
-CREATE POLICY "Users can upload their own avatars" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
-CREATE POLICY "Users can update their own avatars" ON storage.objects FOR UPDATE USING (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
-CREATE POLICY "Users can delete their own avatars" ON storage.objects FOR DELETE USING (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
-
-CREATE POLICY "Thread images are publicly accessible" ON storage.objects FOR SELECT USING (bucket_id = 'thread-images');
-CREATE POLICY "Users can upload thread images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'thread-images' AND auth.uid()::text = (storage.foldername(name))[1]);
-
-CREATE POLICY "Story images are publicly accessible" ON storage.objects FOR SELECT USING (bucket_id = 'stories');
-CREATE POLICY "Users can upload story images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'stories' AND auth.uid()::text = (storage.foldername(name))[1]);
-
--- Create functions for automatic story cleanup
-CREATE OR REPLACE FUNCTION delete_expired_stories()
-RETURNS void AS $$
-BEGIN
-  DELETE FROM stories WHERE expires_at < NOW();
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create function to handle new user registration
 CREATE OR REPLACE FUNCTION handle_new_user()
@@ -156,3 +135,15 @@ BEGIN
     updated_at = NOW();
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create storage buckets
+INSERT INTO storage.buckets (id, name, public) VALUES ('user-content', 'user-content', true) ON CONFLICT DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('thread-images', 'thread-images', true) ON CONFLICT DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('stories', 'stories', true) ON CONFLICT DO NOTHING;
+
+-- Storage policies for user-content bucket
+CREATE POLICY "Anyone can view user content" ON storage.objects FOR SELECT USING (bucket_id = 'user-content');
+CREATE POLICY "Users can upload user content" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'user-content' AND auth.role() = 'authenticated');
+CREATE POLICY "Users can update own user content" ON storage.objects FOR UPDATE USING (bucket_id = 'user-content' AND auth.uid()::text = (storage.foldername(name))[1]);
+CREATE POLICY "Users can delete own user content" ON storage.objects FOR DELETE USING (bucket_id = 'user-content' AND auth.uid()::text = (storage.foldername(name))[1]);
