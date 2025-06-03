@@ -1,0 +1,40 @@
+[plugin:vite:react-babel] /home/runner/workspace/src/components/auth/SignupForm.jsx: Unexpected token, expected "from" (2:15)
+  5 | const SignupForm = () => {
+/home/runner/workspace/src/components/auth/SignupForm.jsx:2:15
+1  |  import React, { useState } from 'react';
+2  |  import { Link }react-router-dom';
+   |                 ^
+3  |  import useAuth from '../../hooks/useAuth';
+4  |
+    at constructor (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:363:19)
+    at JSXParserMixin.raise (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:6609:19)
+    at JSXParserMixin.unexpected (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:6629:16)
+    at JSXParserMixin.expectContextual (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:6889:12)
+    at JSXParserMixin.parseImportSpecifiersAndAfter (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:14132:10)
+    at JSXParserMixin.parseImport (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:14124:17)
+    at JSXParserMixin.parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12768:27)
+    at JSXParserMixin.parseStatementLike (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12658:17)
+    at JSXParserMixin.parseModuleItem (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12635:17)
+    at JSXParserMixin.parseBlockOrModuleBlockBody (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:13208:36)
+    at JSXParserMixin.parseBlockBody (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:13201:10)
+    at JSXParserMixin.parseProgram (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12525:10)
+    at JSXParserMixin.parseTopLevel (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12515:25)
+    at JSXParserMixin.parse (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:14381:10)
+    at parse (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:14415:38)
+    at parser (/home/runner/workspace/node_modules/@babel/core/lib/parser/index.js:41:34)
+    at parser.next (<anonymous>)
+    at normalizeFile (/home/runner/workspace/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+    at normalizeFile.next (<anonymous>)
+    at run (/home/runner/workspace/node_modules/@babel/core/lib/transformation/index.js:22:50)
+    at run.next (<anonymous>)
+    at transform (/home/runner/workspace/node_modules/@babel/core/lib/transform.js:22:33)
+    at transform.next (<anonymous>)
+    at step (/home/runner/workspace/node_modules/gensync/index.js:261:32)
+    at /home/runner/workspace/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (/home/runner/workspace/node_modules/gensync/index.js:223:11)
+    at /home/runner/workspace/node_modules/gensync/index.js:189:28
+    at /home/runner/workspace/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+    at /home/runner/workspace/node_modules/gensync/index.js:113:33
+    at step (/home/runner/workspace/node_modules/gensync/index.js:287:14)
+    at /home/runner/workspace/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (/home/runner/workspace
