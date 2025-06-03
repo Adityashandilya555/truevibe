@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import TopBar from './components/navigation/TopBar';
 import BottomTabs from './components/navigation/BottomTabs';
@@ -22,6 +22,8 @@ import LoginForm from './components/auth/LoginForm';
 import ProtectedRoute, { GuestRoute } from './components/auth/ProtectedRoute';
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
   const { user, initialize } = useAuthStore();
 
