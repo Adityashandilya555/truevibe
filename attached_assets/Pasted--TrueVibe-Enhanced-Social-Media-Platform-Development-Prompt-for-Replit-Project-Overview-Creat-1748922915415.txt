@@ -1,0 +1,832 @@
+# TrueVibe - Enhanced Social Media Platform Development Prompt for Replit
+
+## Project Overview
+Create a sophisticated social media Progressive Web App (PWA) called "TrueVibe" that combines Twitter-like feed algorithms, Instagram-style stories, and BeReal-inspired daily vibes with advanced emotion detection capabilities.
+
+## Missing Components from Original Prompt - Critical Additions
+
+### 1. Enhanced UI/UX Design System (Based on Mockups)
+
+#### Color Palette & Theme
+```typescript
+const theme = {
+  colors: {
+    background: {
+      primary: '#1a1a1a',      // Dark background
+      secondary: '#2a2a2a',    // Card backgrounds
+      tertiary: '#333333',     // Input backgrounds
+    },
+    accent: {
+      primary: '#4ECDC4',      // Teal/cyan accent (buttons, borders)
+      secondary: '#45B7B8',    // Secondary teal
+      gradient: 'linear-gradient(135deg, #4ECDC4, #45B7B8)',
+    },
+    text: {
+      primary: '#FFFFFF',      // Primary text
+      secondary: '#B0B0B0',    // Secondary text
+      muted: '#808080',        // Muted text
+    },
+    emotions: {
+      joy: '#FFD700',          // Gold - matches mockup
+      trust: '#4ECDC4',
+      fear: '#8B5CF6',
+      surprise: '#FF69B4',
+      sadness: '#3B82F6',
+      disgust: '#10B981',
+      anger: '#EF4444',
+      anticipation: '#F59E0B',
+      neutral: '#6B7280',
+    }
+  }
+};
+```
+
+#### Advanced Typography System
+```typescript
+const typography = {
+  fonts: {
+    primary: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+    secondary: 'SF Pro Display, Inter, sans-serif',
+  },
+  sizes: {
+    xs: '0.75rem',     // 12px
+    sm: '0.875rem',    // 14px
+    base: '1rem',      // 16px
+    lg: '1.125rem',    // 18px
+    xl: '1.25rem',     // 20px
+    '2xl': '1.5rem',   // 24px
+    '3xl': '1.875rem', // 30px
+  },
+  weights: {
+    normal: 400,
+    medium: 500,
+    semibold: 600,
+    bold: 700,
+  }
+};
+```
+
+### 2. Content Recommendation Architecture (Missing from Original)
+
+#### User Interest Graph
+```typescript
+interface UserInterestGraph {
+  userId: string;
+  emotionPreferences: {
+    [key in EmotionType]: number; // Weighted preferences 0-1
+  };
+  topicInterests: {
+    topicId: string;
+    weight: number;
+    lastInteraction: Date;
+    interactionType: 'view' | 'reaction' | 'reply' | 'share';
+  }[];
+  temporalPatterns: {
+    activeHours: number[]; // Hours when user is most active
+    preferredContentTypes: ('text' | 'image' | 'video' | 'audio')[];
+    sessionDuration: number;
+  };
+  socialGraph: {
+    strongConnections: string[]; // Close friends with high interaction
+    weakConnections: string[];   // Casual connections
+    influencers: string[];       // Users they engage with but don't follow
+  };
+}
+```
+
+#### Advanced Content Scoring Algorithm
+```typescript
+class ContentRecommendationEngine {
+  private userGraph: Map<string, UserInterestGraph> = new Map();
+  
+  async scoreContent(content: Thread, targetUser: string): Promise<number> {
+    const userInterests = this.userGraph.get(targetUser);
+    if (!userInterests) return 0;
+    
+    const scores = {
+      emotionAlignment: this.calculateEmotionScore(content, userInterests),
+      socialProof: this.calculateSocialScore(content, userInterests),
+      recency: this.calculateRecencyScore(content),
+      engagement: this.calculateEngagementScore(content),
+      diversity: this.calculateDiversityScore(content, targetUser),
+      temporalRelevance: this.calculateTemporalScore(content, userInterests),
+      topicInterest: this.calculateTopicScore(content, userInterests),
+    };
+    
+    // Weighted combination
+    return (
+      scores.emotionAlignment * 0.25 +
+      scores.socialProof * 0.20 +
+      scores.engagement * 0.15 +
+      scores.recency * 0.15 +
+      scores.topicInterest * 0.15 +
+      scores.diversity * 0.05 +
+      scores.temporalRelevance * 0.05
+    );
+  }
+  
+  private calculateEmotionScore(content: Thread, userInterests: UserInterestGraph): number {
+    const contentEmotion = content.emotion.primary;
+    const userPreference = userInterests.emotionPreferences[contentEmotion] || 0;
+    const confidenceBoost = content.emotion.confidence;
+    return userPreference * confidenceBoost;
+  }
+  
+  private calculateSocialScore(content: Thread, userInterests: UserInterestGraph): number {
+    let score = 0;
+    
+    // Strong connections boost
+    if (userInterests.socialGraph.strongConnections.includes(content.userId)) {
+      score += 0.8;
+    }
+    
+    // Check if friends reacted to this content
+    const friendReactions = this.getFriendReactions(content.id, userInterests.socialGraph);
+    score += Math.min(friendReactions.length * 0.1, 0.5);
+    
+    // Influencer content boost
+    if (userInterests.socialGraph.influencers.includes(content.userId)) {
+      score += 0.3;
+    }
+    
+    return Math.min(score, 1.0);
+  }
+  
+  private calculateDiversityScore(content: Thread, targetUser: string): number {
+    const recentContent = this.getRecentUserFeed(targetUser, 10);
+    const emotionDiversity = this.calculateEmotionDiversity(recentContent, content);
+    const topicDiversity = this.calculateTopicDiversity(recentContent, content);
+    return (emotionDiversity + topicDiversity) / 2;
+  }
+}
+```
+
+### 3. Advanced Emotion Detection Pipeline
+
+#### Multi-Modal Emotion Analysis
+```typescript
+class AdvancedEmotionDetector {
+  private textAnalyzer: VaderSentiment;
+  private contextAnalyzer: ContextualEmotionAnalyzer;
+  private imageAnalyzer: ImageEmotionAnalyzer;
+  
+  async analyzeContent(content: {
+    text?: string;
+    imageUrl?: string;
+    audioUrl?: string;
+    context?: ContentContext;
+  }): Promise<EmotionAnalysis> {
+    
+    const analyses: EmotionAnalysis[] = [];
+    
+    // Text emotion analysis
+    if (content.text) {
+      analyses.push(await this.analyzeText(content.text, content.context));
+    }
+    
+    // Image emotion analysis
+    if (content.imageUrl) {
+      analyses.push(await this.analyzeImage(content.imageUrl));
+    }
+    
+    // Audio emotion analysis
+    if (content.audioUrl) {
+      analyses.push(await this.analyzeAudio(content.audioUrl));
+    }
+    
+    // Combine multi-modal results
+    return this.fusionAnalysis(analyses);
+  }
+  
+  private async analyzeText(text: string, context?: ContentContext): Promise<EmotionAnalysis> {
+    // Enhanced VADER with contextual understanding
+    const vaderScores = this.textAnalyzer.polarity_scores(text);
+    const contextualBoost = context ? this.contextAnalyzer.analyze(text, context) : {};
+    
+    // Advanced keyword pattern matching for emotions
+    const emotionKeywords = this.extractEmotionKeywords(text);
+    const intensityModifiers = this.extractIntensityModifiers(text);
+    
+    return this.mapToPlutchikAdvanced(vaderScores, emotionKeywords, intensityModifiers, contextualBoost);
+  }
+  
+  private extractEmotionKeywords(text: string): Map<EmotionType, number> {
+    const emotionPatterns = {
+      joy: ['happy', 'excited', 'thrilled', 'amazing', 'wonderful', 'celebration', '🎉', '😊', '🚀'],
+      trust: ['believe', 'confident', 'reliable', 'support', 'faith', 'loyal'],
+      fear: ['worried', 'scared', 'anxious', 'nervous', 'afraid', 'terrified'],
+      surprise: ['wow', 'unexpected', 'shocked', 'amazed', 'sudden', '😱'],
+      sadness: ['sad', 'depressed', 'heartbroken', 'crying', 'grief', '😢'],
+      disgust: ['gross', 'disgusting', 'revolting', 'sick', 'horrible'],
+      anger: ['angry', 'furious', 'mad', 'rage', 'frustrated', 'annoyed', '😡'],
+      anticipation: ['excited', 'looking forward', 'can\'t wait', 'upcoming', 'soon']
+    };
+    
+    const results = new Map<EmotionType, number>();
+    const words = text.toLowerCase().split(/\W+/);
+    
+    Object.entries(emotionPatterns).forEach(([emotion, patterns]) => {
+      let score = 0;
+      patterns.forEach(pattern => {
+        if (text.toLowerCase().includes(pattern)) {
+          score += 1;
+        }
+      });
+      if (score > 0) {
+        results.set(emotion as EmotionType, score / patterns.length);
+      }
+    });
+    
+    return results;
+  }
+  
+  private extractIntensityModifiers(text: string): number {
+    const intensifiers = ['very', 'extremely', 'incredibly', 'absolutely', 'totally', 'really', 'so', 'super'];
+    const diminishers = ['slightly', 'somewhat', 'kinda', 'little', 'bit', 'barely'];
+    
+    let intensity = 1.0;
+    const words = text.toLowerCase().split(/\W+/);
+    
+    intensifiers.forEach(word => {
+      if (words.includes(word)) intensity += 0.2;
+    });
+    
+    diminishers.forEach(word => {
+      if (words.includes(word)) intensity -= 0.2;
+    });
+    
+    return Math.max(0.1, Math.min(2.0, intensity));
+  }
+}
+```
+
+### 4. Thread Display Components (Matching Mockup Design)
+
+#### Enhanced Thread Component
+```typescript
+interface ThreadComponentProps {
+  thread: Thread;
+  onReaction: (type: ReactionType) => void;
+  currentUserReactions: ReactionType[];
+}
+
+const ThreadComponent: React.FC<ThreadComponentProps> = ({ thread, onReaction, currentUserReactions }) => {
+  const emotionColor = theme.colors.emotions[thread.emotion.primary];
+  
+  return (
+    <motion.div
+      className="bg-gray-800 rounded-lg p-4 mb-4 border-l-4"
+      style={{ borderLeftColor: emotionColor }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      {/* User Header */}
+      <div className="flex items-center mb-3">
+        <img 
+          src={thread.user.avatar} 
+          alt={thread.user.username}
+          className="w-10 h-10 rounded-full mr-3"
+        />
+        <div>
+          <h4 className="text-white font-semibold">{thread.user.username}</h4>
+          <p className="text-gray-400 text-sm">{formatTimeAgo(thread.createdAt)}</p>
+        </div>
+      </div>
+      
+      {/* Thread Content */}
+      <div className="mb-4">
+        <p className="text-white mb-2">{thread.content}</p>
+        
+        {/* Hashtags */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {thread.hashtags.map(hashtag => (
+            <span 
+              key={hashtag}
+              className="text-cyan-400 text-sm hover:text-cyan-300 cursor-pointer"
+            >
+              #{hashtag}
+            </span>
+          ))}
+        </div>
+        
+        {/* Emotion Badge */}
+        <div className="flex items-center gap-2 mb-3">
+          <span 
+            className="px-3 py-1 rounded-full text-sm font-medium"
+            style={{ 
+              backgroundColor: `${emotionColor}20`, 
+              color: emotionColor,
+              border: `1px solid ${emotionColor}40`
+            }}
+          >
+            {thread.emotion.primary}
+          </span>
+          <span className="text-gray-400 text-sm">
+            {Math.round(thread.emotion.confidence * 100)}% confidence
+          </span>
+        </div>
+      </div>
+      
+      {/* Five Reaction System */}
+      <div className="flex justify-between items-center">
+        {Object.entries(thread.reactions).map(([type, count]) => (
+          <ReactionButton
+            key={type}
+            type={type as ReactionType}
+            count={count}
+            isActive={currentUserReactions.includes(type as ReactionType)}
+            onClick={() => onReaction(type as ReactionType)}
+          />
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+```
+
+#### Five Reaction Button Component
+```typescript
+const ReactionButton: React.FC<{
+  type: ReactionType;
+  count: number;
+  isActive: boolean;
+  onClick: () => void;
+}> = ({ type, count, isActive, onClick }) => {
+  const reactionConfig = {
+    resonate: { icon: '🤝', color: '#4ECDC4', label: 'Resonate' },
+    support: { icon: '👏', color: '#10B981', label: 'Support' },
+    learn: { icon: '🧠', color: '#8B5CF6', label: 'Learn' },
+    challenge: { icon: '🤔', color: '#F59E0B', label: 'Challenge' },
+    amplify: { icon: '📢', color: '#EF4444', label: 'Amplify' },
+  };
+  
+  const config = reactionConfig[type];
+  
+  return (
+    <motion.button
+      className={`flex items-center gap-1 px-3 py-2 rounded-full text-sm transition-all ${
+        isActive 
+          ? 'bg-opacity-20 border border-opacity-40' 
+          : 'bg-gray-700 hover:bg-gray-600'
+      }`}
+      style={{
+        backgroundColor: isActive ? `${config.color}20` : undefined,
+        borderColor: isActive ? `${config.color}40` : undefined,
+        color: isActive ? config.color : '#B0B0B0',
+      }}
+      onClick={onClick}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      <span>{config.icon}</span>
+      <span>{count}</span>
+    </motion.button>
+  );
+};
+```
+
+### 5. Enhanced Database Schema with Content Recommendation
+
+```sql
+-- Enhanced users table with recommendation data
+ALTER TABLE users ADD COLUMN IF NOT EXISTS (
+  emotion_preferences JSONB DEFAULT '{}',
+  content_preferences JSONB DEFAULT '{}',
+  interaction_patterns JSONB DEFAULT '{}',
+  last_active TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- User interactions tracking for recommendations
+CREATE TABLE user_interactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  content_id UUID NOT NULL,
+  content_type VARCHAR(20) NOT NULL, -- 'thread', 'story', 'vibe'
+  interaction_type VARCHAR(20) NOT NULL, -- 'view', 'reaction', 'reply', 'share', 'save'
+  interaction_metadata JSONB DEFAULT '{}',
+  session_id VARCHAR(50),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Content embeddings for similarity matching
+CREATE TABLE content_embeddings (
+  content_id UUID PRIMARY KEY,
+  content_type VARCHAR(20) NOT NULL,
+  embedding_vector FLOAT[] NOT NULL,
+  emotion_vector FLOAT[] NOT NULL,
+  topic_tags TEXT[] DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Advanced hashtag analytics
+CREATE TABLE hashtag_analytics (
+  hashtag VARCHAR(100) PRIMARY KEY,
+  total_mentions INTEGER DEFAULT 0,
+  unique_users INTEGER DEFAULT 0,
+  trend_score FLOAT DEFAULT 0,
+  velocity FLOAT DEFAULT 0, -- Rate of growth
+  peak_time TIMESTAMP WITH TIME ZONE,
+  emotions_distribution JSONB DEFAULT '{}',
+  geographic_distribution JSONB DEFAULT '{}',
+  last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Content quality scores
+CREATE TABLE content_quality_scores (
+  content_id UUID PRIMARY KEY,
+  content_type VARCHAR(20) NOT NULL,
+  toxicity_score FLOAT DEFAULT 0,
+  spam_score FLOAT DEFAULT 0,
+  quality_score FLOAT DEFAULT 0,
+  engagement_prediction FLOAT DEFAULT 0,
+  virality_potential FLOAT DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Indexes for performance
+CREATE INDEX idx_user_interactions_user_time ON user_interactions(user_id, created_at DESC);
+CREATE INDEX idx_content_embeddings_type ON content_embeddings(content_type);
+CREATE INDEX idx_hashtag_analytics_trend ON hashtag_analytics(trend_score DESC);
+CREATE INDEX idx_threads_emotion_time ON threads(emotion_data->>'primary', created_at DESC);
+```
+
+### 6. Real-time Feed Updates Architecture
+
+#### Advanced WebSocket Event System
+```typescript
+class RealtimeFeedManager {
+  private supabase: SupabaseClient;
+  private feedCache: Map<string, Thread[]> = new Map();
+  private subscriptions: Map<string, RealtimeChannel> = new Map();
+  
+  async initializeUserFeed(userId: string): Promise<void> {
+    // Subscribe to relevant content updates
+    const feedSubscription = this.supabase
+      .channel(`user_feed_${userId}`)
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'threads',
+          filter: this.buildContentFilter(userId)
+        },
+        (payload) => this.handleFeedUpdate(userId, payload)
+      )
+      .on('postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_reactions'
+        },
+        (payload) => this.handleReactionUpdate(userId, payload)
+      )
+      .subscribe();
+      
+    this.subscriptions.set(userId, feedSubscription);
+    
+    // Initialize feed cache
+    const initialFeed = await this.generatePersonalizedFeed(userId);
+    this.feedCache.set(userId, initialFeed);
+  }
+  
+  private buildContentFilter(userId: string): string {
+    // Build dynamic filter based on user's social graph and interests
+    const userGraph = this.getUserGraph(userId);
+    const followingUsers = userGraph.socialGraph.strongConnections.concat(
+      userGraph.socialGraph.weakConnections
+    );
+    
+    return `user_id.in.(${followingUsers.join(',')})`;
+  }
+  
+  private async generatePersonalizedFeed(userId: string, limit: number = 50): Promise<Thread[]> {
+    const contentEngine = new ContentRecommendationEngine();
+    
+    // Get candidate content
+    const candidates = await this.getCandidateContent(userId, limit * 3);
+    
+    // Score and rank content
+    const scoredContent = await Promise.all(
+      candidates.map(async (content) => ({
+        content,
+        score: await contentEngine.scoreContent(content, userId)
+      }))
+    );
+    
+    // Sort by score and apply diversity filters
+    const rankedContent = scoredContent
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map(item => item.content);
+      
+    return this.applyDiversityFilters(rankedContent, userId);
+  }
+  
+  private applyDiversityFilters(content: Thread[], userId: string): Thread[] {
+    const filtered: Thread[] = [];
+    const emotionCounts = new Map<EmotionType, number>();
+    const userCounts = new Map<string, number>();
+    
+    for (const thread of content) {
+      const emotion = thread.emotion.primary;
+      const author = thread.userId;
+      
+      // Limit consecutive same emotions
+      if ((emotionCounts.get(emotion) || 0) >= 3) continue;
+      
+      // Limit posts per user
+      if ((userCounts.get(author) || 0) >= 2) continue;
+      
+      filtered.push(thread);
+      emotionCounts.set(emotion, (emotionCounts.get(emotion) || 0) + 1);
+      userCounts.set(author, (userCounts.get(author) || 0) + 1);
+      
+      if (filtered.length >= 50) break;
+    }
+    
+    return filtered;
+  }
+}
+```
+
+### 7. Advanced Search & Discovery
+
+#### Semantic Search Implementation
+```typescript
+class SemanticSearchEngine {
+  private searchIndex: Map<string, SearchDocument> = new Map();
+  
+  async search(query: string, filters: SearchFilters = {}): Promise<SearchResult[]> {
+    const results: SearchResult[] = [];
+    
+    // Emotion-based search
+    if (this.isEmotionQuery(query)) {
+      const emotionResults = await this.searchByEmotion(query, filters);
+      results.push(...emotionResults);
+    }
+    
+    // Hashtag search
+    if (query.startsWith('#')) {
+      const hashtagResults = await this.searchByHashtag(query.slice(1), filters);
+      results.push(...hashtagResults);
+    }
+    
+    // Full-text semantic search
+    const textResults = await this.semanticTextSearch(query, filters);
+    results.push(...textResults);
+    
+    // User search
+    if (query.startsWith('@')) {
+      const userResults = await this.searchUsers(query.slice(1), filters);
+      results.push(...userResults);
+    }
+    
+    return this.rankAndDeduplicateResults(results, query);
+  }
+  
+  private async searchByEmotion(emotionQuery: string, filters: SearchFilters): Promise<SearchResult[]> {
+    const emotions = this.extractEmotionsFromQuery(emotionQuery);
+    
+    const threads = await this.supabase
+      .from('threads')
+      .select('*, users(*)')
+      .in('emotion_data->>primary', emotions)
+      .gte('emotion_data->>confidence', 0.7)
+      .order('created_at', { ascending: false })
+      .limit(20);
+      
+    return threads.data?.map(thread => ({
+      type: 'thread' as const,
+      content: thread,
+      relevanceScore: this.calculateEmotionRelevance(thread, emotionQuery),
+      matchType: 'emotion'
+    })) || [];
+  }
+  
+  private async semanticTextSearch(query: string, filters: SearchFilters): Promise<SearchResult[]> {
+    // Use PostgreSQL full-text search with ranking
+    const threads = await this.supabase
+      .from('threads')
+      .select('*, users(*)')
+      .textSearch('content', query, { type: 'websearch' })
+      .order('created_at', { ascending: false })
+      .limit(20);
+      
+    return threads.data?.map(thread => ({
+      type: 'thread' as const,
+      content: thread,
+      relevanceScore: this.calculateTextRelevance(thread.content, query),
+      matchType: 'text'
+    })) || [];
+  }
+}
+```
+
+### 8. Enhanced PWA Features
+
+#### Advanced Offline Support
+```typescript
+class OfflineContentManager {
+  private db: IDBDatabase;
+  private syncQueue: OfflineAction[] = [];
+  
+  async initializeOfflineStorage(): Promise<void> {
+    this.db = await this.openIndexedDB();
+    await this.createStores();
+    this.startBackgroundSync();
+  }
+  
+  async cacheContentForOffline(content: Thread[]): Promise<void> {
+    const transaction = this.db.transaction(['threads'], 'readwrite');
+    const store = transaction.objectStore('threads');
+    
+    for (const thread of content) {
+      await store.put({
+        ...thread,
+        cachedAt: new Date(),
+        offline: true
+      });
+    }
+  }
+  
+  async getOfflineContent(): Promise<Thread[]> {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['threads'], 'readonly');
+      const store = transaction.objectStore('threads');
+      const request = store.getAll();
+      
+      request.onsuccess = () => {
+        const threads = request.result
+          .filter(thread => thread.offline)
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        resolve(threads);
+      };
+      
+      request.onerror = () => reject(request.error);
+    });
+  }
+  
+  async queueOfflineAction(action: OfflineAction): Promise<void> {
+    this.syncQueue.push(action);
+    await this.persistSyncQueue();
+    
+    if (navigator.onLine) {
+      this.processSyncQueue();
+    }
+  }
+  
+  private async processSyncQueue(): Promise<void> {
+    while (this.syncQueue.length > 0) {
+      const action = this.syncQueue.shift()!;
+      
+      try {
+        await this.executeAction(action);
+      } catch (error) {
+        console.error('Failed to sync action:', error);
+        this.syncQueue.unshift(action); // Put it back at the front
+        break;
+      }
+    }
+    
+    await this.persistSyncQueue();
+  }
+}
+```
+
+### 9. Performance Optimization Enhancements
+
+#### Intelligent Preloading
+```typescript
+class IntelligentPreloader {
+  private preloadQueue: Map<string, Promise<any>> = new Map();
+  private userBehaviorPredictor: UserBehaviorPredictor;
+  
+  async predictAndPreload(userId: string): Promise<void> {
+    const predictions = await this.userBehaviorPredictor.predict(userId);
+    
+    // Preload likely content
+    if (predictions.likelyToViewProfile > 0.7) {
+      this.preloadUserProfile(predictions.targetUserId);
+    }
+    
+    if (predictions.likelyToSearchHashtag > 0.6) {
+      this.preloadHashtagContent(predictions.hashtag);
+    }
+    
+    if (predictions.likelyToViewStories > 0.8) {
+      this.preloadFriendStories(userId);
+    }
+  }
+  
+  private async preloadUserProfile(userId: string): Promise<void> {
+    const cacheKey = `profile_${userId}`;
+    
+    if (!this.preloadQueue.has(cacheKey)) {
+      const promise = this.fetchUserProfile(userId);
+      this.preloadQueue.set(cacheKey, promise);
+      
+      // Cache the result
+      const profile = await promise;
+      this.cacheManager.set(cacheKey, profile, 300); // 5 minute TTL
+    }
+  }
+}
+```
+
+### 10. Missing Analytics & Insights
+
+#### User Engagement Analytics
+```typescript
+interface UserAnalytics {
+  dailyActiveUsers: number;
+  averageSessionDuration: number;
+  emotionDistribution: Record<EmotionType, number>;
+  contentEngagementRates: {
+    threads: number;
+    stories: number;
+    vibes: number;
+  };
+  viralityMetrics: {
+    topTrendingHashtags: string[];
+    mostSharedContent: string[];
+    emotionContagion: Record<EmotionType, number>;
+  };
+}
+
+class AnalyticsEngine {
+  async generateUserInsights(userId: string): Promise<UserInsights> {
+    const interactions = await this.getUserInteractions(userId, 30); // Last 30 days
+    
+    return {
+      emotionalJourney: this.analyzeEmotionalJourney(interactions),
+      socialImpact: this.calculateSocialImpact(userId),
+      contentPreferences: this.analyzeContentPreferences(interactions),
+      engagementPatterns: this.analyzeEngagementPatterns(interactions),
+      recommendations: this.generatePersonalRecommendations(userId),
+    };
+  }
+  
+  private analyzeEmotionalJourney(interactions: UserInteraction[]): EmotionalJourney {
+    const emotionTimeline = interactions
+      .filter(i => i.content_type === 'thread')
+      .map(i => ({
+        emotion: i.interaction_metadata.emotion,
+        timestamp: i.created_at,
+        intensity: i.interaction_metadata.intensity || 1
+      }))
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      
+    return {
+      timeline: emotionTimeline,
+      dominantEmotions: this.calculateDominantEmotions(emotionTimeline),
+      emotionVelocity: this.calculateEmotionVelocity(emotionTimeline),
+      moodStability: this.calculateMoodStability(emotionTimeline),
+    };
+  }
+}
+```
+
+### 11. Enhanced Security & Privacy
+
+#### Privacy-Preserving Analytics
+```typescript
+class PrivacyPreservingAnalytics {
+  private localAnalytics: Map<string, any> = new Map();
+  
+  async analyzeLocally(data: any): Promise<AnalyticsResult> {
+    // Perform analysis client-side
+    const result = this.performAnalysis(data);
+    
+    // Only send aggregated, anonymized insights
+    const anonymizedResult = this.anonymizeResult(result);
+    await this.sendAnonymizedInsights(anonymizedResult);
+    
+    return result;
+  }
+  
+  private anonymizeResult(result: AnalyticsResult): AnonymizedResult {
+    return {
+      aggregatedMetrics: result.aggregatedMetrics,
+      trends: result.trends,
+      // Remove any personally identifiable information
+      userId: undefined,
+      timestamp: Math.floor(Date.now() / (1000 * 60 * 60)), // Hour-level precision only
+    };
+  }
+}
+```
+
+This enhanced prompt now includes all the missing components from the original, particularly:
+
+1. **Visual design system** matching your mockups
+2. **Advanced content recommendation architecture**
+3. **Multi-modal emotion detection**
+4. **Enhanced UI components** with proper styling
+5. **Semantic search capabilities**
+6. **Offline functionality**
+7. **Analytics and insights**
+8. **Performance optimizations**
+9. **Privacy-preserving features**
+
+The prompt now provides a complete blueprint for building TrueVibe with the sophistication level you're aiming for!
