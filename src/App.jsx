@@ -1,63 +1,57 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import useAuth from './hooks/useAuth';
-import LoadingScreen from './components/common/LoadingScreen';
-import ProtectedRoute from './components/auth/ProtectedRoute';
-
-// Pages
-import LandingPage from './pages/LandingPage';
-import LoginForm from './components/auth/LoginForm';
-import SignupForm from './components/auth/SignupForm';
+import { AnimatePresence } from 'framer-motion';
+import TopBar from './components/navigation/TopBar';
+import BottomTabs from './components/navigation/BottomTabs';
 import HomePage from './pages/HomePage';
 import ThreadsPage from './pages/ThreadsPage';
-import VibesPage from './pages/VibesPage';
 import ProfilePage from './pages/ProfilePage';
-
+import VibesPage from './pages/VibesPage';
 import './App.css';
 
 function App() {
-  const { isLoading, isInitialized } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Show loading screen while initializing
-  if (!isInitialized || isLoading) {
-    return <LoadingScreen />;
+  useEffect(() => {
+    // Simulate app initialization
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-white">Loading TrueVibe...</h2>
+        </div>
+      </div>
+    );
   }
 
   return (
     <Router>
-      <div className="App min-h-screen bg-gray-50">
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/signup" element={<SignupForm />} />
-          
-          {/* Protected routes */}
-          <Route path="/home" element={
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-          } />
-          <Route path="/threads" element={
-            <ProtectedRoute>
-              <ThreadsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/vibes" element={
-            <ProtectedRoute>
-              <VibesPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          } />
-          
-          {/* Catch all - redirect to home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+      <div className="min-h-screen bg-gray-900 relative">
+        <div className="relative z-10 flex flex-col min-h-screen">
+          <TopBar />
+
+          <main className="flex-1 pb-20">
+            <Routes>
+              <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/threads" element={<ThreadsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/vibes" element={<VibesPage />} />
+              <Route path="*" element={<Navigate to="/home" replace />} />
+            </Routes>
+          </main>
+
+          <BottomTabs />
+        </div>
       </div>
     </Router>
   );

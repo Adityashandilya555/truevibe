@@ -1,154 +1,156 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Edit3, Heart, MessageSquare, Calendar, Sparkles } from 'lucide-react';
-import TopBar from '../components/navigation/TopBar';
-import BottomTabs from '../components/navigation/BottomTabs';
-import ProfileHeader from '../components/profile/ProfileHeader';
-import StoriesCarousel from '../components/profile/StoriesCarousel';
+import { Settings, Edit, Calendar, MapPin, Link, Heart, MessageSquare } from 'lucide-react';
 
 const ProfilePage = () => {
-  const [activeTab, setActiveTab] = useState('threads');
-
-  const profileStats = {
-    threads: 24,
-    reactions: 156,
-    followers: 89,
-    following: 67
+  const profile = {
+    name: 'Demo User',
+    username: '@demouser',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+    bio: 'Exploring emotions through authentic connections 🌟',
+    location: 'San Francisco, CA',
+    website: 'truevibe.com',
+    joined: 'January 2024',
+    followers: 1247,
+    following: 432,
+    posts: 89,
+    adjectives: ['Creative', 'Empathetic', 'Adventurous']
   };
 
-  const mockThreads = [
+  const recentPosts = [
     {
       id: 1,
-      content: "Just had the most amazing coffee this morning! ☕ Sometimes it's the little things that make your day.",
-      emotion: 'joy',
-      timestamp: '2h ago',
-      reactions: 12,
-      comments: 3
+      content: 'Just had the most amazing conversation about the nature of happiness...',
+      emotion: 'joyful',
+      likes: 34,
+      comments: 12,
+      timestamp: '2h ago'
     },
     {
       id: 2,
-      content: "Reflecting on this week's challenges. Growth happens outside our comfort zone, but it's not always easy.",
-      emotion: 'contemplative',
-      timestamp: '1d ago',
-      reactions: 8,
-      comments: 5
-    },
-    {
-      id: 3,
-      content: "Grateful for the support from my friends today. Human connection is everything 💙",
-      emotion: 'gratitude',
-      timestamp: '2d ago',
-      reactions: 19,
-      comments: 7
+      content: 'Reflecting on how much I\'ve grown this past year. Grateful for every experience.',
+      emotion: 'grateful',
+      likes: 45,
+      comments: 8,
+      timestamp: '1d ago'
     }
   ];
 
-  const emotionColors = {
-    joy: 'bg-yellow-100 text-yellow-800',
-    contemplative: 'bg-purple-100 text-purple-800',
-    gratitude: 'bg-blue-100 text-blue-800',
-    excitement: 'bg-orange-100 text-orange-800',
-    calm: 'bg-green-100 text-green-800'
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TopBar />
-
-      <div className="pt-16 pb-20">
-        <ProfileHeader />
-        <StoriesCarousel />
-
-        {/* Profile Stats */}
-        <div className="bg-white mx-4 rounded-xl shadow-sm p-4 mb-4">
-          <div className="grid grid-cols-4 gap-4">
-            {Object.entries(profileStats).map(([key, value]) => (
-              <div key={key} className="text-center">
-                <div className="text-xl font-bold text-gray-900">{value}</div>
-                <div className="text-sm text-gray-500 capitalize">{key}</div>
+    <div className="min-h-screen bg-gray-900">
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        {/* Profile Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gray-800 rounded-xl p-6 mb-6"
+        >
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center space-x-4">
+              <img
+                src={profile.avatar}
+                alt={profile.name}
+                className="w-20 h-20 rounded-full border-4 border-blue-400"
+              />
+              <div>
+                <h1 className="text-2xl font-bold text-white">{profile.name}</h1>
+                <p className="text-gray-400">{profile.username}</p>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="bg-white mx-4 rounded-xl shadow-sm mb-4">
-          <div className="flex border-b border-gray-200">
-            {['threads', 'vibes', 'saved'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-3 px-4 text-center capitalize font-medium transition-colors ${
-                  activeTab === tab
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {tab}
+            </div>
+            <div className="flex space-x-2">
+              <button className="p-2 bg-gray-700 rounded-lg text-gray-300 hover:text-white transition-colors">
+                <Edit size={20} />
               </button>
+              <button className="p-2 bg-gray-700 rounded-lg text-gray-300 hover:text-white transition-colors">
+                <Settings size={20} />
+              </button>
+            </div>
+          </div>
+
+          <p className="text-white mb-4">{profile.bio}</p>
+
+          <div className="flex flex-wrap items-center space-x-4 text-gray-400 text-sm mb-4">
+            <div className="flex items-center space-x-1">
+              <MapPin size={16} />
+              <span>{profile.location}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Link size={16} />
+              <span className="text-blue-400">{profile.website}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Calendar size={16} />
+              <span>Joined {profile.joined}</span>
+            </div>
+          </div>
+
+          {/* Adjectives */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {profile.adjectives.map((adjective, index) => (
+              <span
+                key={index}
+                className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm"
+              >
+                {adjective}
+              </span>
             ))}
           </div>
-        </div>
 
-        {/* Content Area */}
-        <div className="px-4 space-y-4">
-          {activeTab === 'threads' && (
-            <div className="space-y-4">
-              {mockThreads.map((thread) => (
-                <motion.div
-                  key={thread.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-xl shadow-sm p-4"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${emotionColors[thread.emotion] || 'bg-gray-100 text-gray-800'}`}>
-                      {thread.emotion}
-                    </span>
-                    <span className="text-xs text-gray-500">{thread.timestamp}</span>
+          {/* Stats */}
+          <div className="flex space-x-6">
+            <div className="text-center">
+              <div className="text-xl font-bold text-white">{profile.posts}</div>
+              <div className="text-gray-400 text-sm">Posts</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-white">{profile.followers}</div>
+              <div className="text-gray-400 text-sm">Followers</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-white">{profile.following}</div>
+              <div className="text-gray-400 text-sm">Following</div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Recent Posts */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h2 className="text-xl font-bold text-white mb-4">Recent Posts</h2>
+          <div className="space-y-4">
+            {recentPosts.map((post, index) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + index * 0.1 }}
+                className="bg-gray-800 rounded-xl p-4"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="bg-purple-600 text-white px-2 py-1 rounded-full text-xs capitalize">
+                    {post.emotion}
+                  </span>
+                  <span className="text-gray-400 text-sm">{post.timestamp}</span>
+                </div>
+                <p className="text-white mb-3">{post.content}</p>
+                <div className="flex items-center space-x-4 text-gray-400">
+                  <div className="flex items-center space-x-1">
+                    <Heart size={16} />
+                    <span>{post.likes}</span>
                   </div>
-
-                  <p className="text-gray-900 mb-3">{thread.content}</p>
-
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-1">
-                        <Heart className="w-4 h-4" />
-                        <span>{thread.reactions}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <MessageSquare className="w-4 h-4" />
-                        <span>{thread.comments}</span>
-                      </div>
-                    </div>
+                  <div className="flex items-center space-x-1">
+                    <MessageSquare size={16} />
+                    <span>{post.comments}</span>
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-
-          {activeTab === 'vibes' && (
-            <div className="text-center py-12">
-              <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Daily Vibes</h3>
-              <p className="text-gray-600">Share your daily emotional journey</p>
-              <p className="text-sm text-gray-500 mt-2">Coming in Phase 2</p>
-            </div>
-          )}
-
-          {activeTab === 'saved' && (
-            <div className="text-center py-12">
-              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-6 h-6 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Saved Content</h3>
-              <p className="text-gray-600">Your bookmarked threads and vibes</p>
-            </div>
-          )}
-        </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       </div>
-
-      <BottomTabs />
     </div>
   );
 };
