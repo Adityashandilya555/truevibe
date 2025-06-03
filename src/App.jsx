@@ -1,77 +1,76 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import ErrorBoundary from './components/common/ErrorBoundary';
-import LoadingScreen from './components/common/LoadingScreen';
+
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import TopBar from './components/navigation/TopBar';
 import BottomTabs from './components/navigation/BottomTabs';
-import LandingPage from './pages/LandingPage';
+import LoadingScreen from './components/common/LoadingScreen';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import HomePage from './pages/HomePage';
 import ThreadsPage from './pages/ThreadsPage';
-import ProfilePage from './pages/ProfilePage';
 import VibesPage from './pages/VibesPage';
-import AuthFlow from './components/auth/AuthFlow';
+import ProfilePage from './pages/ProfilePage';
 import DocumentationPage from './pages/DocumentationPage';
-import SupportPage from './pages/SupportPage';
-import useAuth from './hooks/useAuth';
+import LandingPage from './pages/LandingPage';
+import AuthFlow from './components/auth/AuthFlow';
+import useAuthStore from './store/authStore';
 import './App.css';
 
-function AppContent() {
-  const { user, session, loading, isAuthenticated } = useAuth();
-  const location = useLocation();
+function App() {
+  const [isLoading, setIsLoading] = useState(true);
+  const { user, checkAuth } = useAuthStore();
 
-  // Show loading screen during authentication check
-  if (loading) {
-    return <LoadingScreen message="Authenticating..." emotion="trust" />;
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        await checkAuth();
+      } catch (error) {
+        console.error('App initialization error:', error);
+      } finally {
+        // Add a minimum loading time for smooth UX
+        setTimeout(() => setIsLoading(false), 1500);
+      }
+    };
+
+    initializeApp();
+  }, [checkAuth]);
+
+  if (isLoading) {
+    return <LoadingScreen />;
   }
 
-  // TEMPORARY: Skip authentication check, allow direct access
-  // if (!isAuthenticated) {
-  //   return (
-  //     <Routes>
-  //       <Route path="/" element={<LandingPage />} />
-  //       <Route path="/login" element={<AuthFlow />} />
-  //       <Route path="/signup" element={<AuthFlow />} />
-  //       <Route path="/auth" element={<AuthFlow />} />
-  //       <Route path="*" element={<Navigate to="/" replace />} />
-  //     </Routes>
-  //   );
-  // }
-
-  // Authenticated user layout
-  return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
-      {/* Fixed height header to prevent CLS */}
-      <div className="h-16 flex-shrink-0">
-        <TopBar />
-      </div>
-
-      {/* Main content with fixed calculations */}
-      <main className="flex-1 overflow-auto" style={{ height: 'calc(100vh - 8rem)' }}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/auth" element={<AuthFlow />} />
-          <Route path="/threads" element={<ThreadsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/vibes" element={<VibesPage />} />
-          <Route path="/documentation" element={<DocumentationPage />} />
-          <Route path="/support" element={<SupportPage />} />
-        </Routes>
-      </main>
-
-      {/* Fixed height bottom navigation to prevent CLS */}
-      <div className="h-16 flex-shrink-0">
-        <BottomTabs />
-      </div>
-    </div>
-  );
-}
-
-function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <AppContent />
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 relative">
+          {/* Background Effects */}
+          <div className="fixed inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+            <div className="absolute top-3/4 left-3/4 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+          </div>
+
+          <div className="relative z-10 flex flex-col min-h-screen">
+            <TopBar />
+            
+            <main className="flex-1 pb-20">
+              <AnimatePresence mode="wait">
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/home" element={<HomePage />} />
+                  <Route path="/auth" element={<AuthFlow />} />
+                  <Route path="/threads" element={<ThreadsPage />} />
+                  <Route path="/vibes" element={<VibesPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/documentation" element={<DocumentationPage />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </AnimatePresence>
+            </main>
+
+            <BottomTabs />
+          </div>
+        </div>
       </Router>
     </ErrorBoundary>
   );

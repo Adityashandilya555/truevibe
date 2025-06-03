@@ -1,135 +1,152 @@
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
+
+import React from 'react';
 import { motion } from 'framer-motion';
+import { Sparkles, Heart, Brain } from 'lucide-react';
 
-// Emotion-based color transitions using Plutchik's wheel
-const EMOTION_COLORS = {
-  joy: 'from-yellow-300 to-yellow-400',
-  trust: 'from-green-300 to-green-500',
-  fear: 'from-emerald-600 to-emerald-700',
-  surprise: 'from-sky-300 to-sky-400',
-  sadness: 'from-blue-400 to-blue-600',
-  disgust: 'from-purple-400 to-purple-600',
-  anger: 'from-red-400 to-red-600',
-  anticipation: 'from-orange-300 to-orange-500',
-  default: 'from-indigo-500 to-purple-600'
-};
+const LoadingScreen = () => {
+  const iconVariants = {
+    hidden: { opacity: 0, scale: 0.5 },
+    visible: { opacity: 1, scale: 1 },
+    pulse: { 
+      scale: [1, 1.2, 1],
+      opacity: [0.7, 1, 0.7]
+    }
+  };
 
-/**
- * LoadingScreen component for TrueVibe app
- * Displays an animated loading spinner with emotion-themed colors
- * 
- * @param {Object} props - Component props
- * @param {string} [props.message="Loading..."] - Custom loading message
- * @param {string} [props.emotion="default"] - Emotion theme for color
- * @param {boolean} [props.fullScreen=true] - Whether to display as fullscreen
- * @param {string} [props.className] - Additional CSS classes
- * @returns {JSX.Element} LoadingScreen component
- */
-const LoadingScreen = ({ 
-  message = "Loading...", 
-  emotion = "default", 
-  fullScreen = true,
-  className = ""
-}) => {
-  const [currentEmotion, setCurrentEmotion] = useState(emotion);
-  
-  // Cycle through emotions for loading animation
-  useEffect(() => {
-    if (emotion !== "default") return;
-    
-    const emotions = Object.keys(EMOTION_COLORS).filter(e => e !== 'default');
-    let index = 0;
-    
-    const interval = setInterval(() => {
-      setCurrentEmotion(emotions[index]);
-      index = (index + 1) % emotions.length;
-    }, 2000); // Change color every 2 seconds
-    
-    return () => clearInterval(interval);
-  }, [emotion]);
-  
-  const containerClasses = fullScreen 
-    ? "fixed inset-0 flex items-center justify-center z-50 bg-white dark:bg-gray-900" 
-    : "flex items-center justify-center";
-  
+  const textVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { delay: 0.5, duration: 0.6 }
+    }
+  };
+
+  const dotVariants = {
+    hidden: { opacity: 0 },
+    visible: (i) => ({
+      opacity: 1,
+      transition: {
+        delay: i * 0.2,
+        repeat: Infinity,
+        repeatType: "reverse",
+        duration: 0.6
+      }
+    })
+  };
+
   return (
-    <div 
-      className={`${containerClasses} ${className}`}
-      role="alert"
-      aria-live="assertive"
-      aria-busy="true"
-      style={{ minHeight: fullScreen ? '100vh' : '200px' }}
-    >
-      <div className="flex flex-col items-center justify-center p-6 max-w-sm">
-        {/* TrueVibe Logo/Text */}
-        <div className="mb-6 text-2xl font-bold text-center">
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500">
-            TrueVibe
-          </span>
-        </div>
-        
-        {/* Animated Spinner */}
-        <div className="relative w-24 h-24 mb-4">
-          {/* Outer ring */}
-          <motion.div 
-            className={`absolute inset-0 rounded-full bg-gradient-to-r ${EMOTION_COLORS[currentEmotion]} opacity-70`}
-            animate={{ 
-              rotate: 360,
-              scale: [1, 1.05, 1]
-            }}
-            transition={{ 
-              rotate: { duration: 2, ease: "linear", repeat: Infinity },
-              scale: { duration: 1, repeat: Infinity }
-            }}
-          />
-          
-          {/* Inner ring */}
-          <motion.div 
-            className="absolute inset-2 rounded-full bg-white dark:bg-gray-800"
-            animate={{ 
-              rotate: -180,
-              scale: [1, 0.95, 1]
-            }}
-            transition={{ 
-              rotate: { duration: 3, ease: "linear", repeat: Infinity },
-              scale: { duration: 1, repeat: Infinity, delay: 0.5 }
-            }}
-          />
-          
-          {/* Center dot */}
-          <motion.div 
-            className={`absolute inset-8 rounded-full bg-gradient-to-br ${EMOTION_COLORS[currentEmotion]}`}
-            animate={{ 
-              scale: [1, 1.2, 1]
-            }}
-            transition={{ 
-              duration: 1.5, 
-              repeat: Infinity
-            }}
-          />
-        </div>
-        
-        {/* Loading Message */}
-        <div 
-          className="text-gray-700 dark:text-gray-300 text-center animate-pulse"
-          aria-label={message}
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center z-50">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      </div>
+
+      <div className="relative z-10 text-center">
+        {/* Main Logo Animation */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          className="flex items-center justify-center mb-8"
         >
-          {message}
+          <motion.div
+            variants={iconVariants}
+            animate="pulse"
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="relative"
+          >
+            <Sparkles className="w-16 h-16 text-yellow-400" />
+            <div className="absolute inset-0 bg-yellow-400/20 rounded-full blur-xl"></div>
+          </motion.div>
+        </motion.div>
+
+        {/* Brand Text */}
+        <motion.div
+          variants={textVariants}
+          initial="hidden"
+          animate="visible"
+          className="mb-8"
+        >
+          <h1 className="text-5xl font-bold text-gradient mb-2">TrueVibe</h1>
+          <p className="text-xl text-gray-300">Connecting hearts through emotions</p>
+        </motion.div>
+
+        {/* Loading Indicators */}
+        <div className="flex items-center justify-center space-x-6 mb-8">
+          {[
+            { icon: Heart, color: "text-red-400", delay: 0 },
+            { icon: Brain, color: "text-blue-400", delay: 0.3 },
+            { icon: Sparkles, color: "text-yellow-400", delay: 0.6 }
+          ].map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ 
+                opacity: [0, 1, 0],
+                scale: [0.8, 1.2, 0.8]
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                delay: item.delay,
+                ease: "easeInOut"
+              }}
+              className="relative"
+            >
+              <item.icon className={`w-8 h-8 ${item.color}`} />
+              <div className={`absolute inset-0 ${item.color.replace('text-', 'bg-')}/20 rounded-full blur-lg`}></div>
+            </motion.div>
+          ))}
         </div>
+
+        {/* Loading Dots */}
+        <div className="flex items-center justify-center space-x-2">
+          <span className="text-gray-400 font-medium">Loading</span>
+          {[0, 1, 2].map((i) => (
+            <motion.span
+              key={i}
+              custom={i}
+              variants={dotVariants}
+              initial="hidden"
+              animate="visible"
+              className="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"
+            />
+          ))}
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-64 h-1 bg-gray-700 rounded-full mx-auto mt-8 overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ 
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+        </div>
+
+        {/* Loading Messages */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="mt-6"
+        >
+          <p className="text-sm text-gray-400">
+            Initializing emotion detection...
+          </p>
+        </motion.div>
       </div>
     </div>
   );
-};
-
-LoadingScreen.propTypes = {
-  message: PropTypes.string,
-  emotion: PropTypes.oneOf([
-    'default', 'joy', 'trust', 'fear', 'surprise', 
-    'sadness', 'disgust', 'anger', 'anticipation'
-  ]),
-  fullScreen: PropTypes.bool,
-  className: PropTypes.string
 };
 
 export default LoadingScreen;
