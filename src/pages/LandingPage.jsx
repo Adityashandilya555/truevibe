@@ -1,198 +1,119 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Heart, Brain, Sparkles, MessageSquare, Users, TrendingUp } from 'lucide-react';
+import { Sparkles, Heart, Users, Shield } from 'lucide-react';
 
 const LandingPage = () => {
-  const navigate = useNavigate();
-
   const features = [
     {
       icon: Heart,
       title: 'Emotion-Aware',
-      description: 'Share your authentic feelings with advanced emotion detection'
-    },
-    {
-      icon: Brain,
-      title: 'Mindful Connections',
-      description: 'Connect with others through genuine emotional experiences'
-    },
-    {
-      icon: Sparkles,
-      title: 'Daily Vibes',
-      description: 'Express your mood and energy with our unique vibe system'
-    },
-    {
-      icon: MessageSquare,
-      title: 'Deep Conversations',
-      description: 'Engage in meaningful threads that go beyond surface level'
+      description: 'Experience social media that understands and responds to your emotional state'
     },
     {
       icon: Users,
-      title: 'Authentic Community',
-      description: 'Join a space where vulnerability is celebrated'
+      title: 'Authentic Connections',
+      description: 'Connect with others through genuine emotions and meaningful interactions'
     },
     {
-      icon: TrendingUp,
-      title: 'Personal Growth',
-      description: 'Track your emotional journey and celebrate progress'
+      icon: Shield,
+      title: 'Safe Environment',
+      description: 'Built-in emotional intelligence protects your mental wellbeing'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
-            {/* Logo */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        {/* Header */}
+        <motion.header
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-16"
+        >
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <Sparkles className="w-12 h-12 text-blue-400" />
+            <h1 className="text-4xl font-bold text-white">TrueVibe</h1>
+          </div>
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            The emotion-aware social media platform that prioritizes emotional intelligence 
+            over engagement manipulation
+          </p>
+        </motion.header>
+
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-5xl font-bold text-white mb-6">
+            Connect <span className="text-blue-400">Authentically</span>
+          </h2>
+          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+            Share your true emotions, engage meaningfully, and build genuine connections 
+            in a space designed for emotional wellbeing
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/signup"
+              className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Get Started
+            </Link>
+            <Link
+              to="/login"
+              className="border border-blue-600 text-blue-400 px-8 py-4 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition-colors"
+            >
+              Sign In
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* Features */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="grid md:grid-cols-3 gap-8 mb-16"
+        >
+          {features.map((feature, index) => (
             <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="flex items-center justify-center space-x-3 mb-8"
-            >
-              <Sparkles className="w-12 h-12 text-blue-400" />
-              <h1 className="text-4xl font-bold text-white">TrueVibe</h1>
-            </motion.div>
-
-            {/* Tagline */}
-            <motion.h2
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-5xl md:text-6xl font-bold text-white mb-6"
-            >
-              Share Your
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                {' '}True Self
-              </span>
-            </motion.h2>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto"
-            >
-              An emotion-aware social platform where authenticity meets connection. 
-              Share your real feelings, engage in meaningful conversations, and build genuine relationships.
-            </motion.p>
-
-            {/* CTA Buttons */}
-            <motion.div
+              key={feature.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6"
+              transition={{ delay: 0.6 + index * 0.1 }}
+              className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 text-center border border-gray-700"
             >
-              <button
-                onClick={() => navigate('/signup')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105"
-              >
-                Start Your Journey
-              </button>
-              <button
-                onClick={() => navigate('/login')}
-                className="border border-gray-400 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-800 transition-all"
-              >
-                Sign In
-              </button>
+              <feature.icon className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
+              <p className="text-gray-300">{feature.description}</p>
             </motion.div>
-          </motion.div>
-        </div>
-
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-32 h-32 rounded-full bg-gradient-to-r from-blue-400/10 to-purple-400/10"
-              animate={{
-                x: [0, 100, 0],
-                y: [0, -100, 0],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 10 + i * 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              style={{
-                left: `${10 + i * 15}%`,
-                top: `${20 + i * 10}%`,
-              }}
-            />
           ))}
-        </div>
-      </div>
+        </motion.div>
 
-      {/* Features Section */}
-      <div className="py-20 bg-gray-900/50">
-        <div className="max-w-6xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
+        {/* CTA Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-center"
+        >
+          <h3 className="text-2xl font-bold text-white mb-4">
+            Ready to experience authentic social media?
+          </h3>
+          <p className="text-blue-100 mb-6">
+            Join thousands of users who are connecting through genuine emotions
+          </p>
+          <Link
+            to="/signup"
+            className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
           >
-            <h3 className="text-3xl font-bold text-white mb-4">
-              Why Choose TrueVibe?
-            </h3>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Experience social media that understands and celebrates your emotions
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 hover:border-blue-500/50 transition-all"
-              >
-                <feature.icon className="w-12 h-12 text-blue-400 mb-4" />
-                <h4 className="text-xl font-semibold text-white mb-2">
-                  {feature.title}
-                </h4>
-                <p className="text-gray-300">
-                  {feature.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* CTA Section */}
-      <div className="py-20">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h3 className="text-3xl font-bold text-white mb-6">
-              Ready to Connect Authentically?
-            </h3>
-            <p className="text-gray-300 text-lg mb-8">
-              Join thousands of users who are sharing their true selves and building meaningful connections.
-            </p>
-            <button
-              onClick={() => navigate('/signup')}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105"
-            >
-              Get Started Now
-            </button>
-          </motion.div>
-        </div>
+            Start Your Journey
+          </Link>
+        </motion.div>
       </div>
     </div>
   );

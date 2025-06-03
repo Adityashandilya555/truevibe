@@ -1,5 +1,4 @@
-
-<old_str>import React from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Search, Bell } from 'lucide-react';
 
@@ -8,29 +7,23 @@ const TopBar = () => {
     <motion.header
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gray-800 border-b border-gray-700 sticky top-0 z-40"
+      className="bg-gray-800 border-b border-gray-700 px-4 py-3 sticky top-0 z-40"
     >
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="max-w-2xl mx-auto flex items-center justify-between">
+        {/* Logo */}
         <div className="flex items-center space-x-2">
-          <Sparkles className="w-8 h-8 text-blue-400" />
+          <Sparkles className="w-8 h-8 text-blue-500" />
           <h1 className="text-xl font-bold text-white">TrueVibe</h1>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => console.log('Search clicked')}
-            className="text-gray-400 hover:text-white transition-colors p-2"
-          >
+        {/* Search and Notifications */}
+        <div className="flex items-center space-x-3">
+          <button className="text-gray-400 hover:text-white transition-colors p-2">
             <Search size={20} />
           </button>
-          <button
-            onClick={() => console.log('Notifications clicked')}
-            className="text-gray-400 hover:text-white transition-colors p-2 relative"
-          >
+          <button className="text-gray-400 hover:text-white transition-colors p-2 relative">
             <Bell size={20} />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              3
-            </span>
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
           </button>
         </div>
       </div>
@@ -39,45 +32,3 @@ const TopBar = () => {
 };
 
 export default TopBar;
-import React from 'react';
-import { Bell, Search } from 'lucide-react';</old_str>
-<new_str>import React from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, Search, Bell } from 'lucide-react';
-
-const TopBar = () => {
-  return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-gray-800 border-b border-gray-700 sticky top-0 z-40"
-    >
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center space-x-2">
-          <Sparkles className="w-8 h-8 text-blue-400" />
-          <h1 className="text-xl font-bold text-white">TrueVibe</h1>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => console.log('Search clicked')}
-            className="text-gray-400 hover:text-white transition-colors p-2"
-          >
-            <Search size={20} />
-          </button>
-          <button
-            onClick={() => console.log('Notifications clicked')}
-            className="text-gray-400 hover:text-white transition-colors p-2 relative"
-          >
-            <Bell size={20} />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              3
-            </span>
-          </button>
-        </div>
-      </div>
-    </motion.header>
-  );
-};
-
-export default TopBar;</new_str>

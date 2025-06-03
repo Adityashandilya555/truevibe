@@ -1,6 +1,5 @@
 
-<old_str></old_str>
-<new_str>import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Heart, TrendingUp, Calendar, Sparkles } from 'lucide-react';
 import TopBar from '../components/navigation/TopBar';
@@ -219,4 +218,4 @@ const VibesPage = () => {
   );
 };
 
-export default VibesPage;</new_str>
+export default VibesPage;
