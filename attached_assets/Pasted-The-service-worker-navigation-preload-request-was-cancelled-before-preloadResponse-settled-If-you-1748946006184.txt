@@ -1,0 +1,132 @@
+The service worker navigation preload request was cancelled before 'preloadResponse' settled. If you intend to use 'preloadResponse', use waitUntil() or respondWith() to wait for the promise to settle.Understand this error
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+8191-8c7f638472217e52.js:1 Replit version 723c5ee6, pid2 version 0.0.1359
+_app-60c1bfc66a8d5374.js:38 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-60c1bfc66a8d5374.js:38  
+_app-60c1bfc66a8d5374.js:38 [LaunchDarkly] LaunchDarkly client initialized
+smart-bomb.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+usage-monitoring.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+smart-bomb.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ smart-bomb.js:1Understand this error
+usage-monitoring.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ usage-monitoring.js:1Understand this error
+prompt-collector.js:11 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+prompt-collector.js:11 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ prompt-collector.js:11Understand this error
+ [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+bash.svg:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+framework-2bcfc913b3383f64.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-2bcfc913b3383f64.js:1Understand this error
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'battery'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+framework-2bcfc913b3383f64.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-2bcfc913b3383f64.js:1Understand this warning
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+framework-2bcfc913b3383f64.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-2bcfc913b3383f64.js:1Understand this error
+analytics.tiktok.com/i18n/pixel/events.js?sdkid=D004GE3C77U8PIVDSDJG&lib=ttq:1 
+            
+            
+           Failed to load resource: net::ERR_TIMED_OUTUnderstand this error
+truevibe:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+framework-2bcfc913b3383f64.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-2bcfc913b3383f64.js:1Understand this error
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+workspace_iframe.html:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+ad-finder.js:1 [@wxt-dev/storage] Running storage migration for sync:timers: v1 -> v2
+ad-finder.js:1 [@wxt-dev/storage] Migration failed for sync:timers Error: Resource::kQuotaBytesPerItem quota exceeded
+(anonymous) @ ad-finder.js:1Understand this error
+client:495 [vite] connecting...
+client:618 [vite] connected.
+workbox-e7681877.js:44 workbox Precaching did not find a match for /__replco/workspace_iframe.html?initialPath=%2F&id=%3Arc4%3A
+workbox-e7681877.js:44 workbox No route found for: /__replco/workspace_iframe.html?initialPath=%2F&id=%3Arc4%3A
+workbox-e7681877.js:44 workbox Router is responding to: /
+workbox-e7681877.js:44 workbox Precaching did not find a match for /manifest.webmanifest
+workbox-e7681877.js:44 workbox No route found for: /manifest.webmanifest
+workbox-e7681877.js:44 workbox Found a cached response in 'workbox-precache-v2-https://0c5dc0b6-68a8-4064-98d3-515c7132c932-00-1yxjszu3grltu.pike.replit.dev:5000/'.
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+stallwart.build.js:1 stallwart: failed ping 3
+stallwart.build.js:1 stallwart: failed ping 4
+stallwart.build.js:1 stallwart: failed ping 5
+stallwart.build.js:1 stallwart: session stalled
+framework-2bcfc913b3383f64.js:1 [Violation] 'message' handler took 197ms
+[Violation] Forced reflow while executing JavaScript took 115ms
+[Violation] Forced reflow while executing JavaScript took 113ms
