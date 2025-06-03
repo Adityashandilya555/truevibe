@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, MessageCircle, Share, Bookmark, Sparkles } from 'lucide-react';
