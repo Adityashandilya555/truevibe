@@ -23,12 +23,12 @@ import ProtectedRoute, { GuestRoute } from './components/auth/ProtectedRoute';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const { user, checkAuth } = useAuthStore();
+  const { user, initialize } = useAuthStore();
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        await checkAuth();
+        await initialize();
       } catch (error) {
         console.error('App initialization error:', error);
       } finally {
@@ -38,7 +38,7 @@ function App() {
     };
 
     initializeApp();
-  }, [checkAuth]);
+  }, [initialize]);
 
   if (isLoading) {
     return <LoadingScreen />;
