@@ -1,0 +1,1453 @@
+# TrueVibe - Complete Social Media Platform Implementation
+
+## Project Overview
+Create a sophisticated emotion-aware social media platform called TrueVibe that combines Twitter's recommendation algorithms with unique emotion detection and three core features: Profile Stories, Daily Vibes, and Vibe Threads.
+
+## 1. Project Setup & Dependencies
+
+```bash name=setup.sh
+# Install all required dependencies
+npm init -y
+npm install @supabase/supabase-js @supabase/auth-ui-react @supabase/auth-ui-shared
+npm install react react-dom next.js @types/react @types/node typescript
+npm install framer-motion lucide-react tailwindcss @tailwindcss/typography
+npm install vader-sentiment natural compromise
+npm install redis ioredis
+npm install recharts date-fns
+npm install react-camera-pro react-audio-recorder
+npm install @emoji-mart/react emoji-mart
+npm install react-hot-toast sonner
+npm install zustand @tanstack/react-query
+npm install clsx class-variance-authority
+```
+
+## 2. Database Schema (Supabase)
+
+```sql name=database_schema.sql
+-- Core Users Table
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email VARCHAR(255) UNIQUE NOT NULL,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  display_name VARCHAR(100) NOT NULL,
+  avatar_url TEXT,
+  bio TEXT,
+  adjectives TEXT[] DEFAULT '{}', -- Three descriptive adjectives
+  verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- User Emotion Profiles
+CREATE TABLE user_emotion_profiles (
+  user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  joy_preference FLOAT DEFAULT 0.5,
+  trust_preference FLOAT DEFAULT 0.5,
+  fear_preference FLOAT DEFAULT 0.5,
+  surprise_preference FLOAT DEFAULT 0.5,
+  sadness_preference FLOAT DEFAULT 0.5,
+  disgust_preference FLOAT DEFAULT 0.5,
+  anger_preference FLOAT DEFAULT 0.5,
+  anticipation_preference FLOAT DEFAULT 0.5,
+  emotional_volatility FLOAT DEFAULT 0.5,
+  empathy_score FLOAT DEFAULT 0.5,
+  active_hours INTEGER[] DEFAULT '{9,10,11,12,13,14,15,16,17,18,19,20,21}',
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Vibe Threads (Main content)
+CREATE TABLE vibe_threads (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  content TEXT NOT NULL CHECK (length(content) <= 280),
+  hashtags TEXT[] DEFAULT '{}',
+  media_urls TEXT[] DEFAULT '{}',
+  
+  -- Emotion Analysis
+  primary_emotion VARCHAR(20) NOT NULL,
+  emotion_confidence FLOAT NOT NULL CHECK (emotion_confidence BETWEEN 0 AND 1),
+  secondary_emotion VARCHAR(20),
+  emotion_intensity FLOAT DEFAULT 1.0,
+  emotion_context JSONB DEFAULT '{}',
+  
+  -- Engagement Metrics
+  reaction_counts JSONB DEFAULT '{"resonate":0,"support":0,"learn":0,"challenge":0,"amplify":0}',
+  reply_count INTEGER DEFAULT 0,
+  share_count INTEGER DEFAULT 0,
+  view_count INTEGER DEFAULT 0,
+  
+  -- Algorithm Scores
+  engagement_score FLOAT DEFAULT 0,
+  trending_score FLOAT DEFAULT 0,
+  quality_score FLOAT DEFAULT 0,
+  text_quality_score FLOAT DEFAULT 0,
+  
+  -- Metadata
+  is_reply BOOLEAN DEFAULT FALSE,
+  parent_thread_id UUID REFERENCES vibe_threads(id),
+  candidate_source VARCHAR(50) DEFAULT 'user_generated',
+  
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  
+  CONSTRAINT valid_emotions CHECK (
+    primary_emotion IN ('joy', 'trust', 'fear', 'surprise', 'sadness', 'disgust', 'anger', 'anticipation')
+  )
+);
+
+-- Daily Vibes (BeReal-like feature)
+CREATE TABLE daily_vibes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  content TEXT,
+  media_url TEXT,
+  audio_url TEXT,
+  background_music_url TEXT,
+  privacy_setting VARCHAR(10) CHECK (privacy_setting IN ('public', 'private')) DEFAULT 'public',
+  
+  -- Emotion data
+  primary_emotion VARCHAR(20),
+  emotion_confidence FLOAT,
+  
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  expires_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + INTERVAL '24 hours')
+);
+
+-- Vibe Stories (Instagram-like stories)
+CREATE TABLE vibe_stories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  media_url TEXT NOT NULL,
+  media_type VARCHAR(10) CHECK (media_type IN ('image', 'video')) NOT NULL,
+  background_music_url TEXT,
+  duration INTEGER DEFAULT 15, -- seconds
+  
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  expires_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + INTERVAL '24 hours')
+);
+
+-- Thread Reactions
+CREATE TABLE thread_reactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  thread_id UUID REFERENCES vibe_threads(id) ON DELETE CASCADE,
+  reaction_type VARCHAR(20) CHECK (reaction_type IN ('resonate', 'support', 'learn', 'challenge', 'amplify')) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  
+  UNIQUE(user_id, thread_id)
+);
+
+-- User Interactions (for algorithm)
+CREATE TABLE user_thread_interactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  thread_id UUID REFERENCES vibe_threads(id) ON DELETE CASCADE,
+  interaction_type VARCHAR(20) NOT NULL,
+  interaction_subtype VARCHAR(20),
+  dwell_time_seconds INTEGER,
+  session_id VARCHAR(50),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Social Graph
+CREATE TABLE user_follows (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  follower_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  following_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  
+  UNIQUE(follower_id, following_id)
+);
+
+-- Hashtag Trending
+CREATE TABLE hashtag_metrics (
+  hashtag VARCHAR(100) PRIMARY KEY,
+  mention_count_1h INTEGER DEFAULT 0,
+  mention_count_24h INTEGER DEFAULT 0,
+  unique_users_24h INTEGER DEFAULT 0,
+  trending_score FLOAT DEFAULT 0,
+  emotion_distribution JSONB DEFAULT '{}',
+  last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Indexes for performance
+CREATE INDEX idx_vibe_threads_user_time ON vibe_threads(user_id, created_at DESC);
+CREATE INDEX idx_vibe_threads_hashtags ON vibe_threads USING gin(hashtags);
+CREATE INDEX idx_vibe_threads_emotion_time ON vibe_threads(primary_emotion, created_at DESC);
+CREATE INDEX idx_vibe_threads_trending ON vibe_threads(trending_score DESC, created_at DESC);
+CREATE INDEX idx_thread_reactions_thread ON thread_reactions(thread_id, reaction_type);
+CREATE INDEX idx_user_follows_follower ON user_follows(follower_id);
+CREATE INDEX idx_user_follows_following ON user_follows(following_id);
+```
+
+## 3. Emotion Detection Engine
+
+```typescript name=src/lib/emotionEngine.ts
+import { Sentiment } from 'vader-sentiment';
+
+export type EmotionType = 'joy' | 'trust' | 'fear' | 'surprise' | 'sadness' | 'disgust' | 'anger' | 'anticipation';
+
+export interface EmotionAnalysis {
+  primary: EmotionType;
+  confidence: number;
+  secondary?: EmotionType;
+  intensity: number;
+  context: string[];
+}
+
+export class EmotionDetectionEngine {
+  private vader = new Sentiment();
+  
+  private emotionPatterns = {
+    joy: {
+      keywords: ['happy', 'excited', 'thrilled', 'amazing', 'wonderful', 'celebration', 'fantastic', 'awesome', 'love', 'grateful'],
+      emojis: ['😊', '😄', '🎉', '🥳', '🚀', '✨', '🌟', '💖', '🔥', '❤️'],
+      weight: 1.0
+    },
+    trust: {
+      keywords: ['believe', 'confident', 'reliable', 'support', 'faith', 'loyal', 'honest', 'genuine', 'authentic', 'trust'],
+      emojis: ['🤝', '💙', '👍', '✅', '🙏', '💯'],
+      weight: 0.8
+    },
+    fear: {
+      keywords: ['worried', 'scared', 'anxious', 'nervous', 'afraid', 'terrified', 'panic', 'concern', 'danger', 'uncertain'],
+      emojis: ['😰', '😱', '😨', '😳', '💀', '⚠️', '😟'],
+      weight: 0.9
+    },
+    surprise: {
+      keywords: ['wow', 'unexpected', 'shocked', 'amazed', 'sudden', 'unbelievable', 'incredible', 'stunning', 'omg'],
+      emojis: ['😱', '🤯', '😲', '🙀', '‼️', '❗', '😮'],
+      weight: 1.1
+    },
+    sadness: {
+      keywords: ['sad', 'depressed', 'heartbroken', 'crying', 'grief', 'disappointed', 'hurt', 'devastated', 'lonely'],
+      emojis: ['😢', '😭', '💔', '😞', '😔', '🥺', '😿'],
+      weight: 0.7
+    },
+    disgust: {
+      keywords: ['gross', 'disgusting', 'revolting', 'sick', 'horrible', 'awful', 'terrible', 'nasty', 'yuck'],
+      emojis: ['🤢', '🤮', '😷', '💩', '🚫', '🤬'],
+      weight: 0.6
+    },
+    anger: {
+      keywords: ['angry', 'furious', 'mad', 'rage', 'frustrated', 'annoyed', 'outraged', 'livid', 'pissed', 'hate'],
+      emojis: ['😡', '🤬', '😠', '💢', '🔥', '⚡', '👿'],
+      weight: 0.8
+    },
+    anticipation: {
+      keywords: ['excited', 'looking forward', 'can\'t wait', 'upcoming', 'soon', 'expecting', 'hopeful', 'eager'],
+      emojis: ['🤗', '⏰', '🔜', '👀', '🎯', '🌅'],
+      weight: 0.9
+    }
+  };
+
+  public analyzeEmotion(text: string): EmotionAnalysis {
+    const vaderScores = this.vader.polarity_scores(text);
+    const emotionScores = this.extractEmotionScores(text);
+    const intensityModifier = this.calculateIntensityModifier(text);
+    
+    const mappedEmotions = this.mapToPlutchikEmotions(vaderScores, emotionScores, intensityModifier);
+    
+    const sortedEmotions = Object.entries(mappedEmotions)
+      .sort(([,a], [,b]) => b - a);
+    
+    const primary = sortedEmotions[0][0] as EmotionType;
+    const primaryScore = sortedEmotions[0][1];
+    const secondary = sortedEmotions.length > 1 && sortedEmotions[1][1] > 0.3 
+      ? sortedEmotions[1][0] as EmotionType 
+      : undefined;
+    
+    return {
+      primary,
+      confidence: Math.min(primaryScore * 1.2, 1.0),
+      secondary,
+      intensity: this.calculateFinalIntensity(primaryScore, intensityModifier),
+      context: this.extractEmotionContext(text, primary)
+    };
+  }
+  
+  private extractEmotionScores(text: string): Record<EmotionType, number> {
+    const scores: Record<EmotionType, number> = {
+      joy: 0, trust: 0, fear: 0, surprise: 0,
+      sadness: 0, disgust: 0, anger: 0, anticipation: 0
+    };
+    
+    const lowercaseText = text.toLowerCase();
+    
+    for (const [emotion, patterns] of Object.entries(this.emotionPatterns)) {
+      let emotionScore = 0;
+      
+      // Check keywords
+      for (const keyword of patterns.keywords) {
+        if (lowercaseText.includes(keyword)) {
+          emotionScore += 1.0;
+        }
+      }
+      
+      // Check emojis (higher weight)
+      for (const emoji of patterns.emojis) {
+        if (text.includes(emoji)) {
+          emotionScore += 1.5;
+        }
+      }
+      
+      scores[emotion as EmotionType] = emotionScore * patterns.weight;
+    }
+    
+    return scores;
+  }
+  
+  private mapToPlutchikEmotions(
+    vaderScores: any,
+    emotionScores: Record<EmotionType, number>,
+    intensityModifier: number
+  ): Record<EmotionType, number> {
+    const mappedScores: Record<EmotionType, number> = { ...emotionScores };
+    
+    const { pos, neg } = vaderScores;
+    
+    if (pos > 0.3) {
+      mappedScores.joy += pos * 0.8;
+      mappedScores.trust += pos * 0.6;
+      mappedScores.anticipation += pos * 0.5;
+    }
+    
+    if (neg > 0.3) {
+      mappedScores.sadness += neg * 0.7;
+      mappedScores.anger += neg * 0.6;
+      mappedScores.fear += neg * 0.5;
+      mappedScores.disgust += neg * 0.4;
+    }
+    
+    // Apply intensity modifier
+    for (const emotion in mappedScores) {
+      mappedScores[emotion as EmotionType] *= intensityModifier;
+    }
+    
+    // Normalize scores
+    const maxScore = Math.max(...Object.values(mappedScores));
+    if (maxScore > 0) {
+      for (const emotion in mappedScores) {
+        mappedScores[emotion as EmotionType] /= maxScore;
+      }
+    }
+    
+    return mappedScores;
+  }
+  
+  private calculateIntensityModifier(text: string): number {
+    let intensity = 1.0;
+    const words = text.toLowerCase().split(/\W+/);
+    
+    const intensifiers = ['very', 'extremely', 'incredibly', 'absolutely', 'totally', 'really', 'so', 'super'];
+    const diminishers = ['slightly', 'somewhat', 'kinda', 'little', 'bit', 'barely'];
+    
+    intensifiers.forEach(word => {
+      if (words.includes(word)) intensity += 0.3;
+    });
+    
+    diminishers.forEach(word => {
+      if (words.includes(word)) intensity -= 0.3;
+    });
+    
+    // Repetition increases intensity
+    const repeatedChars = text.match(/(.)\1{2,}/g);
+    if (repeatedChars) intensity += repeatedChars.length * 0.2;
+    
+    // All caps increases intensity
+    const capsRatio = (text.match(/[A-Z]/g) || []).length / text.length;
+    if (capsRatio > 0.3) intensity += 0.4;
+    
+    return Math.max(0.2, Math.min(2.0, intensity));
+  }
+  
+  private calculateFinalIntensity(primaryScore: number, intensityModifier: number): number {
+    return Math.min(1.0, primaryScore * intensityModifier);
+  }
+  
+  private extractEmotionContext(text: string, primaryEmotion: EmotionType): string[] {
+    const context: string[] = [];
+    
+    const hashtags = text.match(/#\w+/g) || [];
+    context.push(...hashtags);
+    
+    const mentions = text.match(/@\w+/g) || [];
+    context.push(...mentions);
+    
+    return context.slice(0, 5);
+  }
+}
+```
+
+## 4. Text Quality Scorer (Twitter's Algorithm)
+
+```typescript name=src/lib/textScorer.ts
+export class TextQualityScorer {
+  private static readonly OFFENSIVE_TERM_DAMPING = 0.2;
+  private static readonly LENGTH_WEIGHT = 0.5;
+  private static readonly READABILITY_WEIGHT = 0.1;
+  private static readonly SHOUT_WEIGHT = 0.1;
+  private static readonly ENTROPY_WEIGHT = 0.25;
+  private static readonly LINK_WEIGHT = 0.05;
+  
+  private static readonly READABILITY_ALPHA = 0.05;
+  private static readonly ENTROPY_ALPHA = 0.5;
+  private static readonly LENGTH_ALPHA = 0.03;
+
+  public scoreText(content: string): number {
+    const features = this.extractTextFeatures(content);
+    
+    const offensiveDamping = features.isOffensive ? TextQualityScorer.OFFENSIVE_TERM_DAMPING : 1.0;
+    
+    const lengthScore = this.normalize(features.length, TextQualityScorer.LENGTH_ALPHA);
+    const readabilityScore = this.normalize(features.readability, TextQualityScorer.READABILITY_ALPHA);
+    const shoutScore = 1.0 - features.shout;
+    const entropyScore = this.normalize(features.entropy, TextQualityScorer.ENTROPY_ALPHA);
+    const linkScore = features.hasLinks ? 1 : 0;
+    
+    const score = offensiveDamping * (
+      TextQualityScorer.LENGTH_WEIGHT * lengthScore +
+      TextQualityScorer.READABILITY_WEIGHT * readabilityScore +
+      TextQualityScorer.SHOUT_WEIGHT * shoutScore +
+      TextQualityScorer.ENTROPY_WEIGHT * entropyScore +
+      TextQualityScorer.LINK_WEIGHT * linkScore
+    );
+    
+    return Math.min(Math.max(score, 0), 1);
+  }
+  
+  private extractTextFeatures(content: string) {
+    return {
+      length: content.length,
+      readability: this.calculateReadability(content),
+      shout: this.calculateShoutScore(content),
+      entropy: this.calculateEntropy(content),
+      isOffensive: this.detectOffensiveContent(content),
+      hasLinks: content.includes('http')
+    };
+  }
+  
+  private calculateReadability(text: string): number {
+    const words = text.split(/\s+/).length;
+    const sentences = text.split(/[.!?]+/).length;
+    const syllables = this.countSyllables(text);
+    
+    if (words === 0 || sentences === 0) return 0;
+    
+    const avgWordsPerSentence = words / sentences;
+    const avgSyllablesPerWord = syllables / words;
+    
+    const flesch = 206.835 - (1.015 * avgWordsPerSentence) - (84.6 * avgSyllablesPerWord);
+    return Math.max(0, Math.min(100, flesch)) / 100;
+  }
+  
+  private calculateShoutScore(text: string): number {
+    const upperCase = (text.match(/[A-Z]/g) || []).length;
+    const letters = (text.match(/[a-zA-Z]/g) || []).length;
+    return letters > 0 ? upperCase / letters : 0;
+  }
+  
+  private calculateEntropy(text: string): number {
+    const freq: Record<string, number> = {};
+    for (const char of text.toLowerCase()) {
+      freq[char] = (freq[char] || 0) + 1;
+    }
+    
+    let entropy = 0;
+    const length = text.length;
+    for (const count of Object.values(freq)) {
+      const p = count / length;
+      entropy -= p * Math.log2(p);
+    }
+    
+    return entropy;
+  }
+  
+  private countSyllables(text: string): number {
+    return text.toLowerCase()
+      .replace(/[^a-z]/g, '')
+      .replace(/[aeiouy]+/g, 'a')
+      .split('a').length - 1 || 1;
+  }
+  
+  private detectOffensiveContent(text: string): boolean {
+    const offensiveWords = ['hate', 'toxic', 'spam', 'fake', 'stupid', 'idiot'];
+    return offensiveWords.some(word => 
+      text.toLowerCase().includes(word));
+  }
+  
+  private normalize(value: number, alpha: number): number {
+    return 2 * (1.0 / (1.0 + Math.exp(-(alpha * value))) - 0.5);
+  }
+}
+```
+
+## 5. Main App Layout Component
+
+```tsx name=src/components/Layout.tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+import { User, Settings, FileText, LogOut, Menu, Home, MessageSquare, Camera } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/utils';
+
+interface LayoutProps {
+  children: React.ReactNode;
+  currentTab: 'profile' | 'threads' | 'vibes';
+  onTabChange: (tab: 'profile' | 'threads' | 'vibes') => void;
+}
+
+export function Layout({ children, currentTab, onTabChange }: LayoutProps) {
+  const [showSidebar, setShowSidebar] = useState(false);
+  const { user, signOut } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white">
+      {/* Top Bar */}
+      <header className="sticky top-0 z-50 bg-gray-800 border-b border-gray-700">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowSidebar(!showSidebar)}
+              className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <Menu size={20} />
+            </button>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+              TrueVibe
+            </h1>
+          </div>
+        </div>
+      </header>
+
+      {/* Sidebar */}
+      <AnimatePresence>
+        {showSidebar && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={() => setShowSidebar(false)}
+            />
+            <motion.div
+              initial={{ x: -300 }}
+              animate={{ x: 0 }}
+              exit={{ x: -300 }}
+              className="fixed left-0 top-0 h-full w-72 bg-gray-800 z-50 p-6"
+            >
+              {user && (
+                <div className="flex items-center gap-3 mb-8">
+                  <img
+                    src={user.user_metadata.avatar_url || '/default-avatar.png'}
+                    alt={user.user_metadata.full_name || 'User'}
+                    className="w-12 h-12 rounded-full"
+                  />
+                  <div>
+                    <p className="font-semibold">{user.user_metadata.full_name}</p>
+                    <p className="text-sm text-gray-400">@{user.user_metadata.user_name}</p>
+                  </div>
+                </div>
+              )}
+              
+              <nav className="space-y-2">
+                <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-700 rounded-lg transition-colors">
+                  <Settings size={20} />
+                  Settings
+                </button>
+                <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-700 rounded-lg transition-colors">
+                  <FileText size={20} />
+                  Documentation
+                </button>
+                <button
+                  onClick={signOut}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-700 rounded-lg transition-colors text-red-400"
+                >
+                  <LogOut size={20} />
+                  Sign Out
+                </button>
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content */}
+      <main className="pb-20">
+        {children}
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 z-40">
+        <div className="flex">
+          <button
+            onClick={() => onTabChange('profile')}
+            className={cn(
+              "flex-1 flex flex-col items-center py-3 transition-colors",
+              currentTab === 'profile' 
+                ? "text-cyan-400 bg-gray-700" 
+                : "text-gray-400 hover:text-white"
+            )}
+          >
+            <User size={20} />
+            <span className="text-xs mt-1">Profile</span>
+          </button>
+          
+          <button
+            onClick={() => onTabChange('threads')}
+            className={cn(
+              "flex-1 flex flex-col items-center py-3 transition-colors",
+              currentTab === 'threads' 
+                ? "text-cyan-400 bg-gray-700" 
+                : "text-gray-400 hover:text-white"
+            )}
+          >
+            <MessageSquare size={20} />
+            <span className="text-xs mt-1">Threads</span>
+          </button>
+          
+          <button
+            onClick={() => onTabChange('vibes')}
+            className={cn(
+              "flex-1 flex flex-col items-center py-3 transition-colors",
+              currentTab === 'vibes' 
+                ? "text-cyan-400 bg-gray-700" 
+                : "text-gray-400 hover:text-white"
+            )}
+          >
+            <Camera size={20} />
+            <span className="text-xs mt-1">Vibes</span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  );
+}
+```
+
+## 6. Profile Tab Component
+
+```tsx name=src/components/ProfileTab.tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Plus, Play } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
+import { useStories } from '@/hooks/useStories';
+
+export function ProfileTab() {
+  const { user } = useAuth();
+  const { userStories, friendStories, loading } = useStories();
+  const [selectedStory, setSelectedStory] = useState<string | null>(null);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-md mx-auto p-4">
+      {/* Profile Section */}
+      <div className="text-center mb-8">
+        <div className="relative inline-block">
+          <img
+            src={user?.user_metadata.avatar_url || '/default-avatar.png'}
+            alt="Profile"
+            className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-cyan-400"
+          />
+        </div>
+        
+        <h2 className="text-xl font-bold mb-2">
+          {user?.user_metadata.full_name || 'User'}
+        </h2>
+        
+        {/* User Adjectives */}
+        <div className="flex justify-center gap-2 mb-6">
+          {['Creative', 'Empathetic', 'Curious'].map((adjective, index) => (
+            <span
+              key={index}
+              className="px-3 py-1 bg-gray-700 rounded-full text-sm text-cyan-400"
+            >
+              {adjective}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Stories Section */}
+      <div className="space-y-6">
+        {/* Your Stories */}
+        <div>
+          <h3 className="text-lg font-semibold mb-3 text-gray-300">Your Stories</h3>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {/* Add Story Button */}
+            <button className="flex-shrink-0 w-16 h-16 rounded-full border-2 border-dashed border-gray-600 flex items-center justify-center hover:border-cyan-400 transition-colors">
+              <Plus size={20} className="text-gray-400" />
+            </button>
+            
+            {/* User Stories */}
+            {userStories.map((story) => (
+              <motion.button
+                key={story.id}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSelectedStory(story.id)}
+                className="relative flex-shrink-0 w-16 h-16 rounded-full overflow-hidden border-3 border-cyan-400"
+              >
+                <img
+                  src={story.media_url}
+                  alt="Story"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                  <Play size={16} className="text-white" />
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        {/* Friends Stories */}
+        <div>
+          <h3 className="text-lg font-semibold mb-3 text-gray-300">Friends Stories</h3>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {friendStories.map((story) => (
+              <motion.button
+                key={story.id}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSelectedStory(story.id)}
+                className="relative flex-shrink-0 w-16 h-16 rounded-full overflow-hidden border-3 border-purple-400"
+              >
+                <img
+                  src={story.media_url}
+                  alt="Story"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                  <Play size={16} className="text-white" />
+                </div>
+                {/* User avatar overlay */}
+                <img
+                  src={story.user_avatar}
+                  alt={story.user_name}
+                  className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-gray-900"
+                />
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Story Viewer Modal */}
+      {selectedStory && (
+        <StoryViewer
+          storyId={selectedStory}
+          onClose={() => setSelectedStory(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function StoryViewer({ storyId, onClose }: { storyId: string; onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+      onClick={onClose}
+    >
+      <div className="relative w-full h-full max-w-md">
+        {/* Story content would go here */}
+        <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+          <p className="text-white">Story Viewer - Story ID: {storyId}</p>
+        </div>
+        
+        {/* Progress bar */}
+        <div className="absolute top-4 left-4 right-4 h-1 bg-gray-700 rounded-full">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: '100%' }}
+            transition={{ duration: 15 }}
+            className="h-full bg-white rounded-full"
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+```
+
+## 7. Vibe Threads Component
+
+```tsx name=src/components/VibeThreadsTab.tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Search, TrendingUp, Users, Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useVibeThreads } from '@/hooks/useVibeThreads';
+import { ThreadCard } from './ThreadCard';
+import { CreateThreadModal } from './CreateThreadModal';
+
+export function VibeThreadsTab() {
+  const [activeTab, setActiveTab] = useState<'trending' | 'following'>('trending');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedThread, setSelectedThread] = useState<string | null>(null);
+  
+  const { threads, loading, searchThreads } = useVibeThreads();
+
+  useEffect(() => {
+    if (searchQuery) {
+      searchThreads(searchQuery, activeTab);
+    }
+  }, [searchQuery, activeTab]);
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      {/* Header */}
+      <div className="sticky top-16 bg-gray-900/95 backdrop-blur-sm p-4 border-b border-gray-700 z-30">
+        {/* Search Bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Search topics, emotions, hashtags..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:border-cyan-400 focus:outline-none"
+          />
+        </div>
+        
+        {/* Tab Buttons */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab('trending')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              activeTab === 'trending'
+                ? 'bg-cyan-400 text-gray-900'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            <TrendingUp size={16} />
+            Trending
+          </button>
+          <button
+            onClick={() => setActiveTab('following')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              activeTab === 'following'
+                ? 'bg-cyan-400 text-gray-900'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            <Users size={16} />
+            Following
+          </button>
+        </div>
+      </div>
+
+      {/* Create Thread Button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setShowCreateModal(true)}
+        className="fixed bottom-24 right-4 w-14 h-14 bg-cyan-400 text-gray-900 rounded-full flex items-center justify-center shadow-lg z-40"
+      >
+        <Plus size={24} />
+      </motion.button>
+
+      {/* Threads List */}
+      <div className="p-4 space-y-4">
+        {loading ? (
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="bg-gray-800 rounded-xl p-4 animate-pulse">
+                <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-700 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <AnimatePresence>
+            {threads.map((thread) => (
+              <motion.div
+                key={thread.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ThreadCard
+                  thread={thread}
+                  onClick={() => setSelectedThread(thread.id)}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        )}
+      </div>
+
+      {/* Modals */}
+      {showCreateModal && (
+        <CreateThreadModal onClose={() => setShowCreateModal(false)} />
+      )}
+
+      {selectedThread && (
+        <ThreadDetailModal
+          threadId={selectedThread}
+          onClose={() => setSelectedThread(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ThreadDetailModal({ threadId, onClose }: { threadId: string; onClose: () => void }) {
+  const { getThread, getReplies } = useVibeThreads();
+  const [thread, setThread] = useState<any>(null);
+  const [replies, setReplies] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadThread = async () => {
+      const threadData = await getThread(threadId);
+      const repliesData = await getReplies(threadId);
+      setThread(threadData);
+      setReplies(repliesData);
+    };
+    loadThread();
+  }, [threadId]);
+
+  if (!thread) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6">
+          <ThreadCard thread={thread} isDetailed />
+          
+          {/* Replies */}
+          <div className="mt-6 space-y-4">
+            <h3 className="text-lg font-semibold">Replies</h3>
+            {replies.map((reply) => (
+              <ThreadCard key={reply.id} thread={reply} isReply />
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+```
+
+## 8. Thread Card Component
+
+```tsx name=src/components/ThreadCard.tsx
+'use client';
+
+import { useState } from 'react';
+import { Heart, MessageCircle, Share, MoreHorizontal } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { formatDistanceToNow } from 'date-fns';
+import { EmotionType } from '@/lib/emotionEngine';
+
+interface Thread {
+  id: string;
+  content: string;
+  hashtags: string[];
+  primary_emotion: EmotionType;
+  emotion_confidence: number;
+  reaction_counts: {
+    resonate: number;
+    support: number;
+    learn: number;
+    challenge: number;
+    amplify: number;
+  };
+  reply_count: number;
+  share_count: number;
+  created_at: string;
+  user: {
+    username: string;
+    display_name: string;
+    avatar_url: string;
+    verified: boolean;
+  };
+}
+
+interface ThreadCardProps {
+  thread: Thread;
+  onClick?: () => void;
+  isDetailed?: boolean;
+  isReply?: boolean;
+}
+
+const EMOTION_COLORS = {
+  joy: 'border-yellow-400 bg-yellow-400/10',
+  trust: 'border-cyan-400 bg-cyan-400/10',
+  fear: 'border-purple-400 bg-purple-400/10',
+  surprise: 'border-pink-400 bg-pink-400/10',
+  sadness: 'border-blue-400 bg-blue-400/10',
+  disgust: 'border-green-400 bg-green-400/10',
+  anger: 'border-red-400 bg-red-400/10',
+  anticipation: 'border-orange-400 bg-orange-400/10',
+};
+
+const REACTION_ICONS = {
+  resonate: '🤝',
+  support: '👏',
+  learn: '🧠',
+  challenge: '🤔',
+  amplify: '📢',
+};
+
+export function ThreadCard({ thread, onClick, isDetailed = false, isReply = false }: ThreadCardProps) {
+  const [userReaction, setUserReaction] = useState<string | null>(null);
+  
+  const emotionColorClass = EMOTION_COLORS[thread.primary_emotion] || EMOTION_COLORS.joy;
+  
+  const handleReaction = (reactionType: string) => {
+    setUserReaction(userReaction === reactionType ? null : reactionType);
+    // TODO: Send reaction to API
+  };
+
+  return (
+    <motion.div
+      whileHover={{ scale: isReply ? 1 : 1.02 }}
+      className={`
+        ${emotionColorClass}
+        border-l-4 rounded-xl p-4 cursor-pointer transition-all
+        ${isReply ? 'ml-8 bg-gray-800/50' : 'bg-gray-800'}
+      `}
+      onClick={onClick}
+    >
+      {/* User Header */}
+      <div className="flex items-center gap-3 mb-3">
+        <img
+          src={thread.user.avatar_url}
+          alt={thread.user.display_name}
+          className="w-10 h-10 rounded-full"
+        />
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">{thread.user.display_name}</span>
+            {thread.user.verified && <span className="text-cyan-400">✓</span>}
+            <span className="text-gray-400 text-sm">@{thread.user.username}</span>
+          </div>
+          <span className="text-gray-400 text-sm">
+            {formatDistanceToNow(new Date(thread.created_at), { addSuffix: true })}
+          </span>
+        </div>
+        <button className="p-1 hover:bg-gray-700 rounded-full">
+          <MoreHorizontal size={16} className="text-gray-400" />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="mb-4">
+        <p className="text-white mb-2 leading-relaxed">{thread.content}</p>
+        
+        {/* Hashtags */}
+        {thread.hashtags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {thread.hashtags.map((hashtag) => (
+              <span
+                key={hashtag}
+                className="text-cyan-400 hover:text-cyan-300 cursor-pointer text-sm"
+              >
+                #{hashtag}
+              </span>
+            ))}
+          </div>
+        )}
+        
+        {/* Emotion Badge */}
+        <div className="flex items-center gap-2 mb-3">
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
+              EMOTION_COLORS[thread.primary_emotion]?.replace('bg-', 'bg-').replace('/10', '/20')
+            }`}
+            style={{
+              color: EMOTION_COLORS[thread.primary_emotion]?.includes('yellow') ? '#facc15' :
+                     EMOTION_COLORS[thread.primary_emotion]?.includes('cyan') ? '#22d3ee' :
+                     EMOTION_COLORS[thread.primary_emotion]?.includes('purple') ? '#c084fc' :
+                     EMOTION_COLORS[thread.primary_emotion]?.includes('pink') ? '#f472b6' :
+                     EMOTION_COLORS[thread.primary_emotion]?.includes('blue') ? '#60a5fa' :
+                     EMOTION_COLORS[thread.primary_emotion]?.includes('green') ? '#4ade80' :
+                     EMOTION_COLORS[thread.primary_emotion]?.includes('red') ? '#f87171' :
+                     '#fb923c'
+            }}
+          >
+            {thread.primary_emotion}
+          </span>
+          <span className="text-gray-400 text-sm">
+            {Math.round(thread.emotion_confidence * 100)}% confidence
+          </span>
+        </div>
+      </div>
+
+      {/* Reactions */}
+      <div className="flex items-center justify-between border-t border-gray-700 pt-3">
+        <div className="flex items-center gap-1">
+          {Object.entries(thread.reaction_counts).map(([type, count]) => (
+            <motion.button
+              key={type}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleReaction(type);
+              }}
+              className={`
+                flex items-center gap-1 px-3 py-2 rounded-full text-sm transition-all
+                ${userReaction === type 
+                  ? 'bg-cyan-400/20 text-cyan-400 border border-cyan-400/40' 
+                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                }
+              `}
+            >
+              <span>{REACTION_ICONS[type as keyof typeof REACTION_ICONS]}</span>
+              <span>{count}</span>
+            </motion.button>
+          ))}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-4 text-gray-400">
+          <button
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center gap-1 hover:text-cyan-400 transition-colors"
+          >
+            <MessageCircle size={16} />
+            <span className="text-sm">{thread.reply_count}</span>
+          </button>
+          
+          <button
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center gap-1 hover:text-cyan-400 transition-colors"
+          >
+            <Share size={16} />
+            <span className="text-sm">{thread.share_count}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* View Thread Button (for non-detailed view) */}
+      {!isDetailed && !isReply && (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick?.();
+          }}
+          className="w-full mt-4 py-3 bg-cyan-400 text-gray-900 rounded-lg font-semibold hover:bg-cyan-300 transition-colors"
+        >
+          View Thread
+        </motion.button>
+      )}
+    </motion.div>
+  );
+}
+```
+
+## 9. Daily Vibes Component
+
+```tsx name=src/components/DailyVibesTab.tsx
+'use client';
+
+import { useState, useRef } from 'react';
+import { Camera, Mic, Image, Music, Lock, Globe, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Camera as CameraPro } from 'react-camera-pro';
+
+export function DailyVibesTab() {
+  const [showCreateVibe, setShowCreateVibe] = useState(false);
+  const [captureMode, setCaptureMode] = useState<'camera' | 'text' | 'media'>('camera');
+  const [privacy, setPrivacy] = useState<'public' | 'private'>('public');
+  const [vibeContent, setVibeContent] = useState('');
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const camera = useRef<any>(null);
+
+  const handleCreateVibe = () => {
+    setShowCreateVibe(true);
+  };
+
+  const handleCapture = () => {
+    if (camera.current) {
+      const image = camera.current.takePhoto();
+      setCapturedImage(image);
+    }
+  };
+
+  const handleSubmitVibe = async () => {
+    // TODO: Submit vibe to API
+    console.log('Submitting vibe:', {
+      content: vibeContent,
+      image: capturedImage,
+      privacy,
+      mode: captureMode
+    });
+    setShowCreateVibe(false);
+    setCapturedImage(null);
+    setVibeContent('');
+  };
+
+  return (
+    <div className="max-w-md mx-auto p-4">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold mb-2">Daily Vibe</h1>
+        <p className="text-gray-400">Share your authentic moment</p>
+      </div>
+
+      {/* Daily Vibe Notification */}
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="bg-gradient-to-r from-cyan-400/20 to-blue-500/20 border border-cyan-400/30 rounded-xl p-6 mb-8"
+      >
+        <div className="text-center">
+          <div className="w-16 h-16 bg-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Camera className="text-gray-900" size={24} />
+          </div>
+          <h2 className="text-lg font-semibold mb-2">Time for your Daily Vibe!</h2>
+          <p className="text-gray-300 mb-4">
+            Capture this moment and share how you're feeling right now
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleCreateVibe}
+            className="bg-cyan-400 text-gray-900 px-6 py-3 rounded-lg font-semibold"
+          >
+            Create Vibe
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {/* Friends' Vibes Feed */}
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Friends' Vibes</h3>
+        <div className="space-y-4">
+          {/* Placeholder for friends' vibes */}
+          <div className="bg-gray-800 rounded-xl p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-gray-600 rounded-full"></div>
+              <div>
+                <p className="font-semibold">Friend Name</p>
+                <p className="text-sm text-gray-400">2 hours ago</p>
+              </div>
+            </div>
+            <div className="bg-gray-700 aspect-square rounded-lg mb-3 flex items-center justify-center">
+              <p className="text-gray-400">Vibe content</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Create Vibe Modal */}
+      <AnimatePresence>
+        {showCreateVibe && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black z-50"
+          >
+            <div className="h-full flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                <button
+                  onClick={() => setShowCreateVibe(false)}
+                  className="p-2 hover:bg-gray-700 rounded-full"
+                >
+                  <X size={20} />
+                </button>
+                <h2 className="font-semibold">Create Daily Vibe</h2>
+                <button
+                  onClick={handleSubmitVibe}
+                  className="bg-cyan-400 text-gray-900 px-4 py-2 rounded-lg font-semibold"
+                  disabled={!capturedImage && !vibeContent}
+                >
+                  Share
+                </button>
+              </div>
+
+              {/* Mode Selector */}
+              <div className="flex border-b border-gray-700">
+                <button
+                  onClick={() => setCaptureMode('camera')}
+                  className={`flex-1 py-3 text-center ${
+                    captureMode === 'camera' ? 'bg-gray-700 text-cyan-400' : 'text-gray-400'
+                  }`}
+                >
+                  <Camera size={20} className="mx-auto mb-1" />
+                  <span className="text-sm">Camera</span>
+                </button>
+                <button
+                  onClick={() => setCaptureMode('text')}
+                  className={`flex-1 py-3 text-center ${
+                    captureMode === 'text' ? 'bg-gray-700 text-cyan-400' : 'text-gray-400'
+                  }`}
+                >
+                  <span className="text-lg mb-1 block">📝</span>
+                  <span className="text-sm">Text</span>
+                </button>
+                <button
+                  onClick={() => setCaptureMode('media')}
+                  className={`flex-1 py-3 text-center ${
+                    captureMode === 'media' ? 'bg-gray-700 text-cyan-400' : 'text-gray-400'
+                  }`}
+                >
+                  <Image size={20} className="mx-auto mb-1" />
+                  <span className="text-sm">Media</span>
+                </button>
+              </div>
+
+              {/* Content Area */}
+              <div className="flex-1 flex flex-col">
+                {captureMode === 'camera' && (
+                  <div className="flex-1 relative">
+                    {!capturedImage ? (
+                      <CameraPro
+                        ref={camera}
+                        aspectRatio={9/16}
+                        facingMode="user"
+                      />
+                    ) : (
+                      <img
+                        src={capturedImage}
+                        alt="Captured"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    
+                    {/* Camera Controls */}
+                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
+                      {!capturedImage ? (
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          onClick={handleCapture}
+                          className="w-16 h-16 bg-white rounded-full border-4 border-gray-300"
+                        />
+                      ) : (
+                        <button
+                          onClick={() => setCapturedImage(null)}
+                          className="bg-gray-700 text-white px-4 py-2 rounded-lg"
+                        >
+                          Retake
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {captureMode === 'text' && (
+                  <div className="flex-1 p-4">
+                    <textarea
+                      value={vibeContent}
+                      onChange={(e) => setVibeContent(e.target.value)}
+                      placeholder="What's your vibe right now?"
+                      className="w-full h-64 bg-gray-800 border border-gray-600 rounded-lg p-4 resize-none focus:border-cyan-400 focus:outline-none"
+                      maxLength={280}
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-sm text-gray-400">
+                        {vibeContent.length}/280
+                      </span>
+                      <button className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300">
+                        <Music size={16} />
+                        Add Music
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {captureMode === 'media' && (
+                  <div className="flex-1 p-4 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-24 h-24 bg-gray-700 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <Image size={32} className="text-gray-400" />
+                      </div>
+                      <p className="text-gray-400 mb-4">Upload an image or video</p>
+                      <button className="bg-cyan-400 text-gray-900 px-6 py-2 rounded-lg font-semibold">
+                        Choose File
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Privacy & Actions */}
+              <div className="p-4 border-t border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm text-gray-400">Privacy</span>
+                  <div className="flex bg-gray-700 rounded-lg">
+                    <button
+                      onClick={() => setPrivacy('public')}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                        privacy === 'public' ? 'bg-cyan-400 text-gray-900' : 'text-gray-300'
+                      }`}
+                    >
+                      <Globe size={16} />
+                      Public
+                    </button>
+                    <button
+                      onClick={() => setPrivacy('private')}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                        privacy === 'private' ? 'bg-cyan-400 text-gray-900' : 'text-gray-300'
+                      }`}
+                    >
+                      <Lock size={16} />
+                      Private
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+```
+
+## 10. Custom Hooks
+
+```typescript name=src/hooks/useAuth.ts
+import { useEffect, useState } from 'react';
+import { User } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
+
+export function useAuth() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(
