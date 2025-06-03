@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Heart, Users, BookOpen, MessageSquare, Megaphone } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import useAppStore from '../../store/appStore';
+import FiveReactionSystem from '../../services/fiveReactionSystem';
 
 const ReactionSystem = ({ threadId, reactions = {} }) => {
   const { user } = useAuthStore();
@@ -10,6 +11,7 @@ const ReactionSystem = ({ threadId, reactions = {} }) => {
   const [userReaction, setUserReaction] = useState(null);
   const [reactionCounts, setReactionCounts] = useState(reactions);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [reactionSystem] = useState(() => new FiveReactionSystem());
 
   const reactionTypes = [
     { type: 'resonate', icon: Heart, label: 'Resonate', color: '#FF6B6B' },
@@ -19,53 +21,82 @@ const ReactionSystem = ({ threadId, reactions = {} }) => {
     { type: 'amplify', icon: Megaphone, label: 'Amplify', color: '#98D8C8' },
   ];
 
+  // Listen for real-time reaction updates
+  useEffect(() => {
+    const handleReactionUpdate = (event) => {
+      if (event.detail.threadId === threadId) {
+        setReactionCounts(event.detail.newCounts);
+      }
+    };
+
+    window.addEventListener('truevibe_reaction_update', handleReactionUpdate);
+    return () => window.removeEventListener('truevibe_reaction_update', handleReactionUpdate);
+  }, [threadId]);
+
+  // Check user's existing reaction on mount
+  useEffect(() => {
+    if (user && threadId) {
+      const checkUserReaction = async () => {
+        // For demo mode, check localStorage
+        if (user.id.includes('demo') || user.id.includes('mock')) {
+          const demoReactions = JSON.parse(localStorage.getItem('truevibe_user_reactions') || '{}');
+          const threadReactions = demoReactions[threadId] || {};
+          const existingReaction = threadReactions[user.id];
+          if (existingReaction) {
+            setUserReaction(existingReaction);
+          }
+        }
+      };
+
+      checkUserReaction();
+    }
+  }, [user, threadId]);
+
   const handleReaction = async (reactionType) => {
     if (!user || isSubmittingReaction || isAnimating) return;
 
     setIsAnimating(true);
 
     try {
-      // Optimistic update
-      const newCounts = { ...reactionCounts };
-
-      if (userReaction === reactionType) {
-        // Remove reaction
-        newCounts[reactionType] = Math.max(0, (newCounts[reactionType] || 0) - 1);
-        setUserReaction(null);
-      } else {
-        // Add new reaction
-        if (userReaction) {
-          newCounts[userReaction] = Math.max(0, (newCounts[userReaction] || 0) - 1);
+      // Create reaction event
+      const reactionEvent = {
+        userId: user.id,
+        threadId,
+        reactionType,
+        timestamp: new Date(),
+        context: {
+          deviceType: 'web',
+          sessionId: 'demo_session',
+          sourceLocation: 'feed'
         }
-        newCounts[reactionType] = (newCounts[reactionType] || 0) + 1;
-        setUserReaction(reactionType);
-      }
+      };
 
-      setReactionCounts(newCounts);
+      // Process reaction through the advanced system
+      const result = await reactionSystem.processReaction(reactionEvent);
 
-      // Handle demo mode
-      if (user.id.includes('mock') || user.id.includes('demo') || user.email === 'demo@truevibe.com') {
-        // Demo mode - update localStorage
-        const demoThreads = JSON.parse(localStorage.getItem('truevibe_demo_threads') || '[]');
-        const updatedThreads = demoThreads.map(thread => {
-          if (thread.id === threadId) {
-            return { ...thread, reaction_counts: newCounts };
-          }
-          return thread;
-        });
-        localStorage.setItem('truevibe_demo_threads', JSON.stringify(updatedThreads));
+      if (result.success) {
+        // Update local state
+        setReactionCounts(result.newCounts);
+        
+        // Update user reaction state
+        if (userReaction === reactionType) {
+          setUserReaction(null); // Removed reaction
+        } else {
+          setUserReaction(reactionType); // Added new reaction
+        }
 
-        // Update app store
-        useAppStore.setState(state => ({
-          threads: state.threads.map(thread => 
-            thread.id === threadId 
-              ? { ...thread, reaction_counts: newCounts }
-              : thread
-          )
-        }));
+        // Update app store for demo mode
+        if (user.id.includes('mock') || user.id.includes('demo') || user.email === 'demo@truevibe.com') {
+          useAppStore.setState(state => ({
+            threads: state.threads.map(thread => 
+              thread.id === threadId 
+                ? { ...thread, reaction_counts: result.newCounts }
+                : thread
+            )
+          }));
+        }
       } else {
-        // Real mode - submit to backend
-        await addReaction(threadId, reactionType);
+        throw new Error('Failed to process reaction');
       }
     } catch (error) {
       console.error('Failed to add reaction:', error);

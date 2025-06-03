@@ -4,8 +4,11 @@
  * for nuanced emotion detection with privacy-focused processing.
  */
 
-import vader from 'vader-sentiment';
 import CryptoJS from 'crypto-js/crypto-js.js'
+import EmotionDetectionEngine from './emotionDetectionEngine';
+
+// Create global instance
+const emotionEngine = new EmotionDetectionEngine();
 
 // Color mapping for Plutchik's 8 primary emotions
 const EMOTION_COLORS = {
@@ -78,7 +81,7 @@ class LRUCache {
 
   get(key) {
     if (!this.cache.has(key)) return null;
-    
+
     // Check if entry has expired (1 hour)
     const timestamp = this.expiry.get(key);
     if (Date.now() - timestamp > 3600000) {
@@ -86,7 +89,7 @@ class LRUCache {
       this.expiry.delete(key);
       return null;
     }
-    
+
     // Refresh item by removing and re-adding
     const value = this.cache.get(key);
     this.cache.delete(key);
@@ -101,7 +104,7 @@ class LRUCache {
       this.cache.delete(oldestKey);
       this.expiry.delete(oldestKey);
     }
-    
+
     // Add new item
     this.cache.set(key, value);
     this.expiry.set(key, Date.now());
@@ -119,41 +122,41 @@ const emotionStorage = {
     try {
       const encryptedData = localStorage.getItem(`truevibe_emotion_${key}`);
       if (!encryptedData) return null;
-      
+
       const bytes = CryptoJS.AES.decrypt(encryptedData, ENCRYPTION_KEY);
       const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-      
+
       // Check for expiry (24 hours)
       if (Date.now() - decryptedData.timestamp > 86400000) {
         localStorage.removeItem(`truevibe_emotion_${key}`);
         return null;
       }
-      
+
       return decryptedData.value;
     } catch (error) {
       console.error('Error retrieving from emotion storage:', error);
       return null;
     }
   },
-  
+
   setItem: (key, value) => {
     try {
       const data = {
         value,
         timestamp: Date.now()
       };
-      
+
       const encryptedData = CryptoJS.AES.encrypt(
         JSON.stringify(data),
         ENCRYPTION_KEY
       ).toString();
-      
+
       localStorage.setItem(`truevibe_emotion_${key}`, encryptedData);
     } catch (error) {
       console.error('Error saving to emotion storage:', error);
     }
   },
-  
+
   removeExpired: () => {
     try {
       Object.keys(localStorage).forEach(key => {
@@ -161,7 +164,7 @@ const emotionStorage = {
           const encryptedData = localStorage.getItem(key);
           const bytes = CryptoJS.AES.decrypt(encryptedData, ENCRYPTION_KEY);
           const data = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-          
+
           if (Date.now() - data.timestamp > 86400000) {
             localStorage.removeItem(key);
           }
@@ -185,13 +188,13 @@ setTimeout(() => emotionStorage.removeExpired(), 1000);
  */
 const normalizeText = (text) => {
   if (!text) return '';
-  
+
   // Convert to lowercase
   let normalized = text.toLowerCase();
-  
+
   // Remove URLs
   normalized = normalized.replace(/https?:\/\/[^\s]+/g, '');
-  
+
   // Expand common contractions
   const contractions = {
     "can't": "cannot",
@@ -205,12 +208,12 @@ const normalizeText = (text) => {
     "'ve": " have",
     "'m": " am"
   };
-  
+
   Object.keys(contractions).forEach(contraction => {
     const pattern = new RegExp(contraction, 'g');
     normalized = normalized.replace(pattern, contractions[contraction]);
   });
-  
+
   return normalized;
 };
 
@@ -222,52 +225,52 @@ const getSentiment = (text) => {
   if (!text || typeof text !== 'string') {
     return { compound: 0, pos: 0, neg: 0, neu: 1 };
   }
-  
+
   const normalized = normalizeText(text);
-  
+
   // Get base VADER sentiment
-  const baseScores = vader.SentimentIntensityAnalyzer.polarity_scores(normalized);
-  let scores = { ...baseScores };
-  
-  // Process emojis
-  for (const emoji in EMOJI_LEXICON) {
-    if (text.includes(emoji)) {
-      const { value } = EMOJI_LEXICON[emoji];
-      // Adjust compound score (clamped between -1 and 1)
-      scores.compound = Math.min(1, Math.max(-1, scores.compound + value * 0.1));
-      
-      // Adjust positive/negative scores
-      if (value > 0) {
-        scores.pos = Math.min(1, scores.pos + value * 0.05);
-        scores.neg = Math.max(0, scores.neg - value * 0.03);
-      } else {
-        scores.neg = Math.min(1, scores.neg - value * 0.05);
-        scores.pos = Math.max(0, scores.pos + value * 0.03);
-      }
-      
-      // Recalculate neutral
-      scores.neu = 1 - scores.pos - scores.neg;
-    }
-  }
-  
-  // Process hashtags
-  const hashtags = text.match(/#\w+/g) || [];
-  hashtags.forEach(hashtag => {
-    if (HASHTAG_EMOTIONS[hashtag]) {
-      const { value } = HASHTAG_EMOTIONS[hashtag];
-      scores.compound = Math.min(1, Math.max(-1, scores.compound + value * 0.2));
-      
-      if (value > 0) {
-        scores.pos = Math.min(1, scores.pos + value * 0.1);
-      } else {
-        scores.neg = Math.min(1, scores.neg - value * 0.1);
-      }
-      
-      scores.neu = 1 - scores.pos - scores.neg;
-    }
-  });
-  
-  return scores;
+  // const baseScores = vader.SentimentIntensityAnalyzer.polarity_scores(normalized);
+  // let scores = { ...baseScores };
+
+  // // Process emojis
+  // for (const emoji in EMOJI_LEXICON) {
+  //   if (text.includes(emoji)) {
+  //     const { value } = EMOJI_LEXICON[emoji];
+  //     // Adjust compound score (clamped between -1 and 1)
+  //     scores.compound = Math.min(1, Math.max(-1, scores.compound + value * 0.1));
+
+  //     // Adjust positive/negative scores
+  //     if (value > 0) {
+  //       scores.pos = Math.min(1, scores.pos + value * 0.05);
+  //       scores.neg = Math.max(0, scores.neg - value * 0.03);
+  //     } else {
+  //       scores.neg = Math.min(1, scores.neg - value * 0.05);
+  //       scores.pos = Math.max(0, scores.pos + value * 0.03);
+  //     }
+
+  //     // Recalculate neutral
+  //     scores.neu = 1 - scores.pos - scores.neg;
+  //   }
+  // }
+
+  // // Process hashtags
+  // const hashtags = text.match(/#\w+/g) || [];
+  // hashtags.forEach(hashtag => {
+  //   if (HASHTAG_EMOTIONS[hashtag]) {
+  //     const { value } = HASHTAG_EMOTIONS[hashtag];
+  //     scores.compound = Math.min(1, Math.max(-1, scores.compound + value * 0.2));
+
+  //     if (value > 0) {
+  //       scores.pos = Math.min(1, scores.pos + value * 0.1);
+  //     } else {
+  //       scores.neg = Math.min(1, scores.neg - value * 0.1);
+  //     }
+
+  //     scores.neu = 1 - scores.pos - scores.neg;
+  //   }
+  // });
+
+  return { compound: 0, pos: 0, neg: 0, neu: 1 };
 };
 
 /**
@@ -276,7 +279,7 @@ const getSentiment = (text) => {
  */
 const mapToEmotion = (scores) => {
   const { compound, pos, neg, neu } = scores;
-  
+
   // Emotional mappings based on VADER scores and Plutchik's wheel
   const emotions = {
     joy: compound >= 0.5 ? compound * 0.8 : 0,
@@ -288,21 +291,21 @@ const mapToEmotion = (scores) => {
     anger: compound <= -0.2 && neg > 0.4 ? neg * 0.9 : 0,
     anticipation: compound > 0.0 && pos > 0.2 ? pos * 0.7 : 0
   };
-  
+
   // Find dominant emotion
   let dominantEmotion = 'neutral';
   let maxScore = 0;
-  
+
   Object.entries(emotions).forEach(([emotion, score]) => {
     if (score > maxScore) {
       maxScore = score;
       dominantEmotion = emotion;
     }
   });
-  
+
   // Calculate confidence (0-1)
   let confidence = maxScore;
-  
+
   // Fallback to sentiment-based emotion for neutral
   if (dominantEmotion === 'neutral') {
     if (compound >= 0.3) {
@@ -318,13 +321,41 @@ const mapToEmotion = (scores) => {
       confidence = 0.3; // Low confidence for neutral
     }
   }
-  
+
   return {
     dominantEmotion,
     confidence: Math.min(confidence, 1),
     emotionScores: emotions
   };
 };
+
+/**
+ * Returns the color code for a given emotion
+ */
+export const getEmotionColor = (emotion) => {
+  const colors = {
+    joy: '#FFD700',      // Gold
+    trust: '#00CED1',    // Dark Turquoise
+    fear: '#800080',     // Purple
+    surprise: '#FF6347', // Tomato
+    sadness: '#4682B4',  // Steel Blue
+    disgust: '#228B22',  // Forest Green
+    anger: '#DC143C',    // Crimson
+    anticipation: '#FF8C00', // Dark Orange
+    neutral: '#A9A9A9'   // Dark Gray
+  };
+  return colors[emotion] || colors.neutral;
+};
+
+/**
+ * Returns CSS border style for a given emotion
+ */
+export const getEmotionBorder = (emotion, confidence) => {
+  const color = getEmotionColor(emotion);
+  const opacity = Math.min(confidence, 0.8);
+  return `2px solid ${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`;
+};
+
 
 /**
  * Main function to analyze emotion in text
@@ -335,59 +366,51 @@ export const analyzeEmotion = (text) => {
     return {
       dominantEmotion: 'neutral',
       confidence: 0,
-      color: EMOTION_COLORS.neutral,
+      color: getEmotionColor('neutral'),
       scores: { compound: 0, pos: 0, neg: 0, neu: 1 }
     };
   }
-  
+
   // Generate hash for cache key
   const cacheKey = CryptoJS.SHA256(text).toString();
-  
+
   // Check cache first
   const cachedResult = emotionCache.get(cacheKey);
   if (cachedResult) {
     return cachedResult;
   }
-  
+
   // Not in cache, perform analysis
-  const sentimentScores = getSentiment(text);
-  const { dominantEmotion, confidence, emotionScores } = mapToEmotion(sentimentScores);
-  
+    // Use the advanced emotion detection engine
+    const analysis = emotionEngine.analyzeEmotion(text);
+
+    const dominantEmotion = analysis.primary;
+    const confidence = analysis.confidence;
+    const sentimentScores = analysis.rawScores;
+
   // Create result
   const result = {
     dominantEmotion,
     confidence,
-    color: EMOTION_COLORS[dominantEmotion] || EMOTION_COLORS.neutral,
+    color: getEmotionColor(dominantEmotion),
     scores: sentimentScores,
-    emotionScores
+    emotionScores: {}
   };
-  
+
   // Cache result
   emotionCache.put(cacheKey, result);
-  
+
   // Store in encrypted local storage for trend analysis
   emotionStorage.setItem(cacheKey, {
     dominantEmotion,
     confidence,
     timestamp: Date.now()
   });
-  
+
   return result;
 };
 
-/**
- * Returns CSS border style for a given emotion
- */
-export const getEmotionBorder = (emotion) => {
-  return EMOTION_BORDERS[emotion] || EMOTION_BORDERS.neutral;
-};
 
-/**
- * Returns the color code for a given emotion
- */
-export const getEmotionColor = (emotion) => {
-  return EMOTION_COLORS[emotion] || EMOTION_COLORS.neutral;
-};
 
 /**
  * Analyzes emotion trends from local cache over past 24h
@@ -396,7 +419,7 @@ export const getEmotionTrend = () => {
   try {
     const emotions = { joy: 0, trust: 0, fear: 0, surprise: 0, sadness: 0, disgust: 0, anger: 0, anticipation: 0, neutral: 0 };
     let total = 0;
-    
+
     // Iterate through local storage
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith('truevibe_emotion_')) {
@@ -404,7 +427,7 @@ export const getEmotionTrend = () => {
           const encryptedData = localStorage.getItem(key);
           const bytes = CryptoJS.AES.decrypt(encryptedData, ENCRYPTION_KEY);
           const data = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-          
+
           // Only consider last 24 hours
           if (Date.now() - data.timestamp <= 86400000) {
             emotions[data.value.dominantEmotion] += 1;
@@ -415,7 +438,7 @@ export const getEmotionTrend = () => {
         }
       }
     });
-    
+
     // Calculate percentages
     const result = {};
     if (total > 0) {
@@ -423,7 +446,7 @@ export const getEmotionTrend = () => {
         result[emotion] = (emotions[emotion] / total) * 100;
       });
     }
-    
+
     return result;
   } catch (error) {
     console.error('Error analyzing emotion trends:', error);

@@ -63,13 +63,81 @@ CREATE TABLE IF NOT EXISTS hashtags (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create user thread interactions table for advanced tracking
+CREATE TABLE IF NOT EXISTS user_thread_interactions (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  thread_id UUID REFERENCES threads(id) ON DELETE CASCADE NOT NULL,
+  interaction_type TEXT NOT NULL CHECK (interaction_type IN ('reaction', 'view', 'share', 'reply')),
+  interaction_subtype TEXT, -- For reaction types: resonate, support, learn, challenge, amplify
+  device_type TEXT DEFAULT 'web',
+  session_id TEXT,
+  source_location TEXT DEFAULT 'feed',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, thread_id, interaction_type, interaction_subtype)
+);
+
+-- Create user emotion profiles table
+CREATE TABLE IF NOT EXISTS user_emotion_profiles (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE NOT NULL,
+  joy_preference DECIMAL DEFAULT 0.5,
+  trust_preference DECIMAL DEFAULT 0.5,
+  fear_preference DECIMAL DEFAULT 0.5,
+  surprise_preference DECIMAL DEFAULT 0.5,
+  sadness_preference DECIMAL DEFAULT 0.5,
+  disgust_preference DECIMAL DEFAULT 0.5,
+  anger_preference DECIMAL DEFAULT 0.5,
+  anticipation_preference DECIMAL DEFAULT 0.5,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create user follows table for social features
+CREATE TABLE IF NOT EXISTS user_follows (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  follower_user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  following_user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(follower_user_id, following_user_id)
+);
+
+-- Create user blocks table
+CREATE TABLE IF NOT EXISTS user_blocks (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  blocker_user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  blocked_user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(blocker_user_id, blocked_user_id)
+);
+
+-- Create hashtag trending metrics table
+CREATE TABLE IF NOT EXISTS hashtag_trending_metrics (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  hashtag TEXT UNIQUE NOT NULL,
+  mention_count_1h INTEGER DEFAULT 0,
+  mention_count_24h INTEGER DEFAULT 0,
+  unique_users_1h INTEGER DEFAULT 0,
+  velocity_1h DECIMAL DEFAULT 0,
+  trending_score DECIMAL DEFAULT 0,
+  emotion_distribution JSONB DEFAULT '{}',
+  last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_threads_user_id ON threads(user_id);
 CREATE INDEX IF NOT EXISTS idx_threads_created_at ON threads(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_threads_emotion ON threads(emotion);
 CREATE INDEX IF NOT EXISTS idx_reactions_thread_id ON reactions(thread_id);
 CREATE INDEX IF NOT EXISTS idx_stories_user_id ON stories(user_id);
 CREATE INDEX IF NOT EXISTS idx_stories_expires_at ON stories(expires_at);
 CREATE INDEX IF NOT EXISTS idx_hashtags_tag ON hashtags(tag);
+CREATE INDEX IF NOT EXISTS idx_user_interactions_user_id ON user_thread_interactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_interactions_thread_id ON user_thread_interactions(thread_id);
+CREATE INDEX IF NOT EXISTS idx_user_interactions_type ON user_thread_interactions(interaction_type, interaction_subtype);
+CREATE INDEX IF NOT EXISTS idx_user_follows_follower ON user_follows(follower_user_id);
+CREATE INDEX IF NOT EXISTS idx_user_follows_following ON user_follows(following_user_id);
+CREATE INDEX IF NOT EXISTS idx_hashtag_trending_score ON hashtag_trending_metrics(trending_score DESC);
 
 -- Set up Row Level Security (RLS)
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
@@ -77,6 +145,11 @@ ALTER TABLE threads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE stories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hashtags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_thread_interactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_emotion_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_follows ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_blocks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hashtag_trending_metrics ENABLE ROW LEVEL SECURITY;
 
 -- User profiles policies
 CREATE POLICY "Public profiles are viewable by everyone" ON user_profiles FOR SELECT USING (true);

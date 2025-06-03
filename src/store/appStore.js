@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
+import FeedGenerator from '../services/feedGenerator';
+import FiveReactionSystem from '../services/fiveReactionSystem';
 import { analyzeEmotion, getEmotionTrend } from '../services/emotion/vaderEnhanced';
 
 /**
@@ -19,15 +21,15 @@ const useAppStore = create((set, get) => ({
     profile: 0,
     vibes: 0,
   },
-  
+
   // Loading states
   isLoadingThreads: false,
   isLoadingStories: false,
   isSubmittingReaction: false,
-  
+
   // Error states
   error: null,
-  
+
   // Data states
   threads: [],
   stories: {
@@ -36,12 +38,17 @@ const useAppStore = create((set, get) => ({
   },
   trendingHashtags: [],
   emotionTrends: {},
-  
+  feedMetrics: null,
+
   // Current viewing states
   currentThread: null,
   currentStory: null,
   viewedStories: new Set(),
-  
+
+  // Services
+  feedGenerator: new FeedGenerator(),
+  reactionSystem: new FiveReactionSystem(),
+
   /**
    * Toggle dark mode
    */
@@ -49,7 +56,7 @@ const useAppStore = create((set, get) => ({
     set(state => ({
       isDarkMode: !state.isDarkMode
     }));
-    
+
     // Update document class for Tailwind dark mode
     if (get().isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -57,7 +64,7 @@ const useAppStore = create((set, get) => ({
       document.documentElement.classList.remove('dark');
     }
   },
-  
+
   /**
    * Toggle menu open state
    */
@@ -66,7 +73,7 @@ const useAppStore = create((set, get) => ({
       isMenuOpen: !state.isMenuOpen
     }));
   },
-  
+
   /**
    * Set active tab and clear notifications
    * @param {string} tab - Tab name to set active
@@ -80,7 +87,7 @@ const useAppStore = create((set, get) => ({
       }
     }));
   },
-  
+
   /**
    * Add notification to a tab
    * @param {string} tab - Tab to add notification to
@@ -94,44 +101,71 @@ const useAppStore = create((set, get) => ({
       }
     }));
   },
-  
+
   /**
    * Fetch threads from Supabase
    * @param {number} limit - Maximum threads to fetch
    * @param {number} offset - Offset for pagination
    */
-  fetchThreads: async (limit = 10, offset = 0) => {
+  fetchThreads: async (userId = null) => {
     set({ isLoadingThreads: true, error: null });
-    
+
     try {
-      const { data, error } = await supabase
-        .from('threads')
-        .select(`
-          *,
-          user_profiles:user_id(username, avatar_url),
-          reactions(reaction_type, count)
-        `)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
-      
-      if (error) throw error;
-      
-      // If first load, replace threads, otherwise append
-      if (offset === 0) {
-        set({ threads: data });
-      } else {
-        set(state => ({
-          threads: [...state.threads, ...data]
-        }));
+      const { feedGenerator } = get();
+
+      // Get current user if not provided
+      if (!userId) {
+        const user = await supabase.auth.getUser();
+        userId = user.data.user?.id;
       }
+
+      if (!userId) {
+        // No user, use fallback feed
+        const fallbackFeed = await feedGenerator.getFallbackFeed('anonymous', 50);
+        set({ 
+          threads: fallbackFeed, 
+          isLoadingThreads: false,
+          feedMetrics: feedGenerator.getFeedMetrics(fallbackFeed)
+        });
+        return;
+      }
+
+      // Generate personalized feed using advanced algorithms
+      const personalizedFeed = await feedGenerator.generateFeed(userId, 50);
+
+      set({ 
+        threads: personalizedFeed, 
+        isLoadingThreads: false,
+        feedMetrics: feedGenerator.getFeedMetrics(personalizedFeed)
+      });
+
     } catch (error) {
       console.error('Error fetching threads:', error);
-      set({ error: error.message });
-    } finally {
-      set({ isLoadingThreads: false });
+
+      // Fallback to basic fetch on error
+      try {
+        const { data } = await supabase
+          .from('threads')
+          .select(`
+            *,
+            user_profiles:user_id (
+              username,
+              avatar_url,
+              adjective_one,
+              adjective_two,
+              adjective_three
+            )
+          `)
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        set({ threads: data || [], isLoadingThreads: false, error: null });
+      } catch (fallbackError) {
+        set({ error: error.message, isLoadingThreads: false });
+      }
     }
   },
-  
+
   /**
    * Fetch trending hashtags
    */
@@ -142,15 +176,15 @@ const useAppStore = create((set, get) => ({
         .select('tag, count')
         .order('count', { ascending: false })
         .limit(10);
-      
+
       if (error) throw error;
-      
+
       set({ trendingHashtags: data });
     } catch (error) {
       console.error('Error fetching hashtags:', error);
     }
   },
-  
+
   /**
    * Create a new thread
    * @param {string} content - Thread content
@@ -158,125 +192,138 @@ const useAppStore = create((set, get) => ({
    * @param {string} mediaUrl - Optional media URL
    */
   createThread: async (content, emotion, mediaUrl = null) => {
-    const userId = supabase.auth.getUser()?.data?.user?.id;
-    if (!userId) return;
-    
-    set({ isLoadingThreads: true, error: null });
-    
-    // Extract hashtags
-    const hashtagRegex = /#[\w]+/g;
-    const hashtags = content.match(hashtagRegex) || [];
-    
     try {
-      // Create thread
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error('No authenticated user');
+
+      // Extract hashtags
+      const hashtags = (content.match(/#\w+/g) || []).map(tag => tag.substring(1));
+
+      const threadData = {
+        content,
+        emotion: emotion.dominantEmotion,
+        emotion_score: emotion.confidence,
+        hashtags,
+        user_id: user.data.user.id,
+        media_url: mediaUrl,
+        reaction_counts: {
+          resonate: 0,
+          support: 0,
+          learn: 0,
+          challenge: 0,
+          amplify: 0
+        }
+      };
+
+      // For demo mode, handle locally
+      if (user.data.user.id.includes('demo') || user.data.user.id.includes('mock')) {
+        const newThread = {
+          id: `thread_${Date.now()}`,
+          ...threadData,
+          created_at: new Date().toISOString(),
+          user_profiles: {
+            username: user.data.user.email?.split('@')[0] || 'DemoUser',
+            avatar_url: null,
+            adjective_one: 'Creative',
+            adjective_two: 'Authentic',
+            adjective_three: 'Inspiring'
+          }
+        };
+
+        // Store in localStorage for demo
+        const demoThreads = JSON.parse(localStorage.getItem('truevibe_demo_threads') || '[]');
+        demoThreads.unshift(newThread);
+        localStorage.setItem('truevibe_demo_threads', JSON.stringify(demoThreads));
+
+        // Add to state
+        set(state => ({
+          threads: [newThread, ...state.threads]
+        }));
+
+        return { success: true, thread: newThread };
+      }
+
+      // Real database insert
       const { data, error } = await supabase
         .from('threads')
-        .insert([
-          {
-            user_id: userId,
-            content,
-            emotion: emotion.dominantEmotion,
-            emotion_score: emotion.confidence,
-            hashtags,
-            media_url: mediaUrl
-          }
-        ])
-        .select();
-      
+        .insert(threadData)
+        .select(`
+          *,
+          user_profiles:user_id (
+            username,
+            avatar_url,
+            adjective_one,
+            adjective_two,
+            adjective_three
+          )
+        `)
+        .single();
+
       if (error) throw error;
-      
-      // Update hashtag counts
-      if (hashtags.length > 0) {
-        // Use Promise.all for concurrent updates
-        await Promise.all(hashtags.map(async (tag) => {
-          const { error } = await supabase.rpc('increment_hashtag', {
-            tag_name: tag.slice(1) // Remove # prefix
-          });
-          
-          if (error) console.error('Error incrementing hashtag:', error);
-        }));
-      }
-      
-      // Add to threads state
+
+      // Add to the beginning of threads
       set(state => ({
-        threads: [data[0], ...state.threads]
+        threads: [data, ...state.threads]
       }));
-      
-      // Update emotion trends
-      get().updateEmotionTrends();
+
+      // Update trending hashtags
+      if (hashtags.length > 0) {
+        get().updateTrendingHashtags(hashtags);
+      }
+
+      return { success: true, thread: data };
     } catch (error) {
       console.error('Error creating thread:', error);
       set({ error: error.message });
-    } finally {
-      set({ isLoadingThreads: false });
+      return { success: false, error: error.message };
     }
   },
-  
+
   /**
    * Add reaction to a thread
    * @param {string} threadId - ID of thread to react to
    * @param {string} reactionType - Type of reaction
    */
   addReaction: async (threadId, reactionType) => {
-    const userId = supabase.auth.getUser()?.data?.user?.id;
-    if (!userId) return;
-    
+    const { isSubmittingReaction, reactionSystem } = get();
+    if (isSubmittingReaction) return;
+
     set({ isSubmittingReaction: true });
-    
+
     try {
-      // Check if user already reacted
-      const { data: existingReaction } = await supabase
-        .from('reactions')
-        .select('*')
-        .eq('thread_id', threadId)
-        .eq('user_id', userId)
-        .single();
-      
-      if (existingReaction) {
-        // Update existing reaction
-        if (existingReaction.reaction_type !== reactionType) {
-          const { error } = await supabase
-            .from('reactions')
-            .update({ reaction_type: reactionType })
-            .eq('id', existingReaction.id);
-          
-          if (error) throw error;
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error('No authenticated user');
+
+      // Create reaction event
+      const reactionEvent = {
+        userId: user.data.user.id,
+        threadId,
+        reactionType,
+        timestamp: new Date(),
+        context: {
+          deviceType: 'web',
+          sessionId: 'session_' + Date.now(),
+          sourceLocation: 'feed'
         }
+      };
+
+      // Process reaction through advanced system
+      const result = await reactionSystem.processReaction(reactionEvent);
+
+      if (result.success) {
+        // Update local state with new counts
+        set(state => ({
+          threads: state.threads.map(thread => {
+            if (thread.id === threadId) {
+              return { ...thread, reaction_counts: result.newCounts };
+            }
+            return thread;
+          })
+        }));
       } else {
-        // Create new reaction
-        const { error } = await supabase
-          .from('reactions')
-          .insert([
-            {
-              thread_id: threadId,
-              user_id: userId,
-              reaction_type: reactionType
-            }
-          ]);
-        
-        if (error) throw error;
+        throw new Error('Failed to process reaction');
       }
-      
-      // Update local thread state
-      set(state => ({
-        threads: state.threads.map(thread => {
-          if (thread.id === threadId) {
-            // Update reaction counts
-            const updatedReactions = { ...thread.reactions };
-            
-            if (existingReaction) {
-              // Decrement old reaction type
-              updatedReactions[existingReaction.reaction_type] -= 1;
-            }
-            
-            // Increment new reaction type
-            updatedReactions[reactionType] = (updatedReactions[reactionType] || 0) + 1;
-            
-            return { ...thread, reactions: updatedReactions };
-          }
-          return thread;
-        })
-      }));
+
     } catch (error) {
       console.error('Error adding reaction:', error);
       set({ error: error.message });
@@ -284,21 +331,21 @@ const useAppStore = create((set, get) => ({
       set({ isSubmittingReaction: false });
     }
   },
-  
+
   /**
    * Fetch user and friend stories
    */
   fetchStories: async () => {
     const userId = supabase.auth.getUser()?.data?.user?.id;
     if (!userId) return;
-    
+
     set({ isLoadingStories: true, error: null });
-    
+
     try {
       // Get current timestamp for 24h expiry check
       const oneDayAgo = new Date();
       oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-      
+
       // Fetch user stories
       const { data: userStories, error: userError } = await supabase
         .from('stories')
@@ -306,9 +353,9 @@ const useAppStore = create((set, get) => ({
         .eq('user_id', userId)
         .gte('created_at', oneDayAgo.toISOString())
         .order('created_at', { ascending: false });
-      
+
       if (userError) throw userError;
-      
+
       // Fetch friend stories (for MVP, get all other users' stories)
       const { data: friendStories, error: friendError } = await supabase
         .from('stories')
@@ -319,9 +366,9 @@ const useAppStore = create((set, get) => ({
         .neq('user_id', userId)
         .gte('created_at', oneDayAgo.toISOString())
         .order('created_at', { ascending: false });
-      
+
       if (friendError) throw friendError;
-      
+
       set({
         stories: {
           user: userStories || [],
@@ -335,7 +382,7 @@ const useAppStore = create((set, get) => ({
       set({ isLoadingStories: false });
     }
   },
-  
+
   /**
    * Create a new story
    * @param {string} mediaUrl - Story media URL
@@ -345,14 +392,14 @@ const useAppStore = create((set, get) => ({
   createStory: async (mediaUrl, textContent = null, backgroundMusic = null) => {
     const userId = supabase.auth.getUser()?.data?.user?.id;
     if (!userId) return;
-    
+
     set({ isLoadingStories: true, error: null });
-    
+
     try {
       // Calculate expiry (24 hours from now)
       const expiry = new Date();
       expiry.setDate(expiry.getDate() + 1);
-      
+
       const { data, error } = await supabase
         .from('stories')
         .insert([
@@ -365,9 +412,9 @@ const useAppStore = create((set, get) => ({
           }
         ])
         .select();
-      
+
       if (error) throw error;
-      
+
       // Add to stories state
       set(state => ({
         stories: {
@@ -382,7 +429,7 @@ const useAppStore = create((set, get) => ({
       set({ isLoadingStories: false });
     }
   },
-  
+
   /**
    * Mark a story as viewed
    * @param {string} storyId - ID of story to mark viewed
@@ -394,7 +441,7 @@ const useAppStore = create((set, get) => ({
       return { viewedStories };
     });
   },
-  
+
   /**
    * Set current viewing story
    * @param {Object} story - Story object being viewed
@@ -405,7 +452,7 @@ const useAppStore = create((set, get) => ({
       get().markStoryViewed(story.id);
     }
   },
-  
+
   /**
    * Update emotion trends from local storage data
    */
@@ -413,7 +460,26 @@ const useAppStore = create((set, get) => ({
     const trends = getEmotionTrend();
     set({ emotionTrends: trends });
   },
-  
+
+  updateTrendingHashtags: async (hashtags) => {
+    try {
+      // Update hashtag counts
+      for (const hashtag of hashtags) {
+        await supabase.rpc('increment_hashtag_count', { tag_name: hashtag });
+      }
+
+      // Refresh trending hashtags
+      get().fetchTrendingHashtags();
+    } catch (error) {
+      console.error('Error updating trending hashtags:', error);
+    }
+  },
+
+  invalidateUserFeed: async (userId) => {
+    const { feedGenerator } = get();
+    await feedGenerator.invalidateUserFeed(userId);
+  },
+
   /**
    * Clear error state
    */
@@ -425,12 +491,12 @@ const useAppStore = create((set, get) => ({
 // Initialize app state
 const initializeAppStore = () => {
   const { isDarkMode } = useAppStore.getState();
-  
+
   // Set initial dark mode based on preference
   if (isDarkMode) {
     document.documentElement.classList.add('dark');
   }
-  
+
   // Set up real-time subscriptions
   const setupRealtimeSubscriptions = async () => {
     // Subscribe to new threads
@@ -439,13 +505,13 @@ const initializeAppStore = () => {
       .on('INSERT', (payload) => {
         const { threads, activeTab } = useAppStore.getState();
         const newThread = payload.new;
-        
+
         // Add to threads list if not already present
         if (!threads.find(t => t.id === newThread.id)) {
           useAppStore.setState(state => ({
             threads: [newThread, ...state.threads]
           }));
-          
+
           // Add notification if not on threads tab
           if (activeTab !== 'threads') {
             useAppStore.getState().addNotification('threads');
@@ -453,17 +519,17 @@ const initializeAppStore = () => {
         }
       })
       .subscribe();
-      
+
     // Subscribe to new stories
     supabase
       .channel('public:stories')
       .on('INSERT', (payload) => {
         const { stories, activeTab } = useAppStore.getState();
         const newStory = payload.new;
-        
+
         // Check if it's a friend's story or user's own story
         const userId = supabase.auth.getUser()?.data?.user?.id;
-        
+
         if (newStory.user_id === userId) {
           // Add to user stories if not already present
           if (!stories.user.find(s => s.id === newStory.id)) {
@@ -483,7 +549,7 @@ const initializeAppStore = () => {
                 friends: [newStory, ...state.stories.friends]
               }
             }));
-            
+
             // Add notification if not on profile tab
             if (activeTab !== 'profile') {
               useAppStore.getState().addNotification('profile');
@@ -493,7 +559,7 @@ const initializeAppStore = () => {
       })
       .subscribe();
   };
-  
+
   // Initialize subscriptions
   setupRealtimeSubscriptions();
 };
