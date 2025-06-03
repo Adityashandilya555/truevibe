@@ -1,0 +1,172 @@
+text
+# TrueVibe PWA: Final Production Implementation
+
+## CORE REQUIREMENTS
+**Build a deploy-ready social media PWA with these exact specs:**
+
+### 1. Non-Negotiable Features
+Ephemeral 24h stories (react-insta-stories v2.8+)
+
+Real-time emotion detection (VADER + Plutchik color mapping)
+
+Five-reaction system with live counts
+
+Three-adjective personality profiles
+
+Dark theme (#1a1a1a) with cyan accents (#4dd0e1)
+
+PWA installability + offline functionality
+
+text
+
+### 2. Technical Stack
+React 18 + Vite 6
+
+Zustand 4.3+ with persist middleware
+
+Supabase v3.0+ with RLS
+
+Framer Motion 10+
+
+Workbox 7+
+
+text
+
+### 3. Validation Checklist
+✅ Stories auto-delete after 24h via Supabase cron
+✅ Emotion border updates within 300ms of typing
+✅ Reactions update without page refresh
+✅ PWA scores 90+ in Lighthouse
+✅ All components render correctly on mobile
+
+text
+
+## IMPLEMENTATION BLUEPRINT
+
+### 1. Supabase Schema
+-- Required Tables (Verify via pg_dump)
+CREATE TABLE users (
+id UUID PRIMARY KEY REFERENCES auth.users,
+adjectives TEXT NOT NULL,
+avatar_url TEXT
+);
+
+CREATE TABLE stories (
+id UUID PRIMARY KEY,
+user_id UUID REFERENCES users(id),
+media_url TEXT NOT NULL,
+expires_at TIMESTAMPTZ NOT NULL,
+created_at TIMESTAMPTZ DEFAULT NOW()
+) WITH (autovacuum_enabled = true);
+
+CREATE POLICY "User manages stories" ON stories
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+
+text
+
+### 2. Component Architecture
+src/
+├── features/
+│ ├── auth/ # All auth logic
+│ ├── stories/ # Ephemeral content system
+│ ├── threads/ # Post/reaction system
+│ └── profile/ # 3-adjective system
+├── lib/
+│ ├── supabase/ # Client initialization
+│ └── emotion/ # VADER analysis utils
+├── AppShell.tsx # Main layout with nav
+└── service-worker.ts # Workbox configuration
+
+text
+
+### 3. Real-Time Implementation
+// stories/useStories.ts
+const useStories = create((set) => ({
+stories: [],
+loadStories: async () => {
+const { data } = await supabase
+.from('stories')
+.select('*')
+.gt('expires_at', new Date().toISOString());
+set({ stories: data });
+}
+}));
+
+// Subscribe to realtime changes
+supabase.channel('stories')
+.on('postgres_changes',
+{ event: 'INSERT', schema: 'public' },
+(payload) => {
+useStories.getState().loadStories();
+}
+)
+.subscribe();
+
+text
+
+## DEBUGGING PROTOCOL
+
+### 1. Common Issue Resolution
+❌ "Email not confirmed" → Disable email confirmation in Supabase Auth
+❌ Missing reaction counts → Add composite indexes on (thread_id, type)
+❌ Slow emotion detection → Memoize VADER analysis with useMemo
+❌ Stories not expiring → Implement Supabase pg_cron job
+
+text
+
+### 2. Performance Optimization
+Add to vite.config.ts
+export default defineConfig({
+build: {
+rollupOptions: {
+output: {
+manualChunks: {
+vader: ['vader-sentiment'],
+framer: ['framer-motion']
+}
+}
+}
+}
+})
+
+text
+
+## DEPLOYMENT READINESS
+
+### 1. Build Configuration
+npm run build && npm run preview
+
+Verify:
+- build/ directory contains optimized assets
+- sw.js precaches core assets
+- 404.html exists for SPA fallback
+text
+
+### 2. Hosting Setup
+.env.production
+VITE_SUPABASE_URL=your-project-url
+VITE_SUPABASE_KEY=your-anon-key
+VITE_PUBLIC_URL=https://your-domain.com
+
+text
+
+### 3. Monitoring
+// package.json
+"scripts": {
+"lint": "eslint . --ext ts,tsx",
+"e2e": "cypress run",
+"audit": "lighthouse http://localhost:4173 --output=html"
+}
+
+text
+
+## ANTI-HALLUCINATION GUARDRAILS
+1. REJECT any non-Supabase auth suggestions
+2. REQUIRE TypeScript interfaces for all props
+3. VALIDATE against https://i.imgur.com/truevibe-screenshot.png
+4. TEST all features in this order:
+   a) Auth flow
+   b) Story creation/deletion
+   c) Emotion detection
+   d) Reaction system

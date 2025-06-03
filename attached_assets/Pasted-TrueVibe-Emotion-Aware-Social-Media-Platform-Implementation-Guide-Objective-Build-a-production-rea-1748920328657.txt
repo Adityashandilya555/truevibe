@@ -1,0 +1,181 @@
+TrueVibe: Emotion-Aware Social Media Platform Implementation Guide
+Objective: Build a production-ready social media PWA with emotion detection, ephemeral stories, friend networking, and hashtag-driven discovery using React + Supabase.
+
+Core Features & Architecture
+1. Profile Tab (Instagram Stories + Twitter Follow System)
+
+Stories:
+
+24-hour expiration (auto-delete via Supabase cron jobs)
+
+Emotion-themed borders (joy=gold, trust=blue, etc.)
+
+Upload images/text with real-time preview
+
+Follow System:
+
+Send/accept/reject friend requests
+
+Follower/following counters
+
+Three Adjectives:
+
+User selects 3 personality traits during signup (Creative, Empathetic, Curious)
+
+Display as colored pills below profile picture
+
+2. Threads Tab (Twitter Feed + Emotion Analysis)
+
+Real-Time Emotion Detection:
+
+VADER sentiment analysis on text input
+
+Border color changes as user types
+
+Confidence percentage display (e.g., "Joy 85%")
+
+Trending/Following Tabs:
+
+Trending: Top hashtags with engagement scores
+
+Following: Posts from friends only
+
+Search Bar:
+
+Autocomplete for hashtags/users
+
+Full-text search across posts
+
+3. Technical Stack
+
+Frontend: React 18 + Vite, Zustand, Framer Motion
+
+Backend: Supabase (Auth, Realtime, Storage)
+
+Styling: Tailwind CSS with dark theme (#1a1a1a background, #4dd0e1 accents)
+
+Supabase Schema
+sql
+-- Stories  
+CREATE TABLE stories (  
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  
+  user_id UUID REFERENCES auth.users NOT NULL,  
+  media_url TEXT NOT NULL,  
+  emotion VARCHAR(20) CHECK (emotion IN ('joy','trust','fear','surprise','sadness','disgust','anger','anticipation')),  
+  expires_at TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '24 HOURS'  
+);  
+
+-- Relationships  
+CREATE TABLE relationships (  
+  follower_id UUID REFERENCES auth.users,  
+  followed_id UUID REFERENCES auth.users,  
+  status VARCHAR(9) CHECK (status IN ('pending','accepted','rejected')),  
+  PRIMARY KEY (follower_id, followed_id)  
+);  
+
+-- Threads  
+CREATE TABLE threads (  
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  
+  content TEXT NOT NULL,  
+  hashtags TEXT[],  
+  emotion VARCHAR(20),  
+  user_id UUID REFERENCES auth.users NOT NULL  
+);  
+Zustand Stores
+1. Auth Store
+
+javascript
+const useAuth = create(persist((set) => ({  
+  user: null,  
+  session: null,  
+  actions: {  
+    followUser: async (targetId) => {  
+      const { data } = await supabase  
+        .from('relationships')  
+        .upsert({ follower_id: user.id, followed_id: targetId, status: 'pending' });  
+      set(state => ({ following: [...state.following, targetId] }));  
+    },  
+    acceptRequest: async (requesterId) => {  
+      await supabase  
+        .from('relationships')  
+        .update({ status: 'accepted' })  
+        .match({ follower_id: requesterId, followed_id: user.id });  
+    }  
+  }  
+}), { name: 'auth-store' }));  
+2. Stories Store
+
+javascript
+const useStories = create((set) => ({  
+  stories: [],  
+  loadStories: async () => {  
+    const { data } = await supabase  
+      .from('stories')  
+      .select('*')  
+      .gt('expires_at', new Date().toISOString());  
+    set({ stories: data });  
+  },  
+  addStory: async (media) => {  
+    const { data } = await supabase.storage  
+      .from('stories')  
+      .upload(`${user.id}/${Date.now()}`, media);  
+    await supabase.from('stories').insert([{  
+      media_url: data.path,  
+      user_id: user.id  
+    }]);  
+  }  
+}));  
+Implementation Prompts for Replit Agent
+1. Profile Tab Implementation
+
+text
+Implement profile page with:  
+- Circular story bubbles at top (first is user's latest story, second is "+" button)  
+- Three adjective pills below profile picture (editable via settings)  
+- "Follow"/"Pending"/"Message" button based on relationship status  
+- Stories must auto-delete after 24h using Supabase Edge Functions  
+2. Threads Tab Implementation
+
+text
+Build main feed with:  
+- Search bar with hashtag autocomplete (#truevibe, #emotionaware)  
+- Trending tab showing top 10 hashtags (calculate via engagement score)  
+- Following tab showing posts from friends only  
+- Real-time emotion borders on post composer (update every 500ms)  
+3. Anti-Hallucination Rules
+
+text
+REJECT ANY:  
+- Twitter/X-like features not explicitly mentioned  
+- Usage of localStorage outside Zustand persist  
+- Non-Supabase authentication methods  
+- styled-components (use Tailwind only)  
+
+REQUIRE:  
+- TypeScript interfaces for all props  
+- RLS policies on all Supabase tables  
+- Mobile-first responsive design  
+4. Validation Checklist
+
+text
+✅ User can create/delete stories visible for 24h  
+✅ Follow requests appear in notifications  
+✅ Emotion border updates during typing  
+✅ Hashtag click shows related posts  
+✅ Search finds users/posts by text  
+5. Debugging Priority
+
+text
+1. Fix "Email not confirmed" error in Supabase Auth  
+2. Ensure stories auto-delete via cron job  
+3. Validate real-time reaction updates  
+4. Test hashtag trend score calculation  
+Final Prompt for Replit Agent:
+
+text
+Build TrueVibe as described above using React + Supabase.  
+- Start with auth flow and profile tab  
+- Implement stories before threads  
+- Use provided schema and Zustand patterns  
+- NO DEVIATIONS from specified UI/UX  
+- Validate ALL checklist items before final commit  
