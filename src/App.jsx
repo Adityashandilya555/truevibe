@@ -22,22 +22,53 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
-  const { user, initialize } = useAuthStore();
+  const [demoMode, setDemoMode] = useState(false);
+  const { user, initialize, setAuth } = useAuthStore();
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        await initialize();
+        // Check if demo mode is enabled
+        const isDemoMode = localStorage.getItem('truevibe_demo_mode') === 'true';
+        if (isDemoMode) {
+          setDemoMode(true);
+          // Set demo user
+          const demoUser = {
+            id: 'demo_user_123',
+            email: 'demo@truevibe.com',
+            user_metadata: {
+              full_name: 'Demo User',
+              avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+              user_name: 'demouser'
+            }
+          };
+          const demoSession = { user: demoUser };
+          const demoProfile = {
+            id: 'demo_user_123',
+            username: 'demouser',
+            adjective_one: 'Creative',
+            adjective_two: 'Empathetic',
+            adjective_three: 'Curious'
+          };
+          setAuth(demoUser, demoSession, demoProfile);
+        } else {
+          await initialize();
+        }
       } catch (error) {
         console.error('App initialization error:', error);
       } finally {
-        // Add a minimum loading time for smooth UX
         setTimeout(() => setIsLoading(false), 1500);
       }
     };
 
     initializeApp();
-  }, [initialize]);
+  }, [initialize, setAuth]);
+
+  // Enable demo mode function
+  const enableDemoMode = () => {
+    localStorage.setItem('truevibe_demo_mode', 'true');
+    window.location.reload();
+  };
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -53,41 +84,35 @@ function App() {
             <AnimatePresence mode="wait">
               <Routes>
                 {/* Public Routes */}
-                <Route path="/" element={<LandingPage />} />
+                <Route path="/" element={
+                  demoMode || user ? <Navigate to="/home" replace /> : 
+                  <LandingPage onEnterDemo={enableDemoMode} />
+                } />
 
                 {/* Guest Only Routes (redirect to home if authenticated) */}
                 <Route path="/login" element={
-                  <GuestRoute>
-                    <LoginForm />
-                  </GuestRoute>
+                  (demoMode || user) ? <Navigate to="/home" replace /> :
+                  <LoginForm onEnterDemo={enableDemoMode} />
                 } />
 
                 {/* OAuth Callback */}
                 <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-                {/* Protected Routes */}
+                {/* Main App Routes (accessible in demo mode or authenticated) */}
                 <Route path="/home" element={
-                  <ProtectedRoute>
-                    <HomePage />
-                  </ProtectedRoute>
+                  (demoMode || user) ? <HomePage /> : <Navigate to="/" replace />
                 } />
 
                 <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <ProfilePage />
-                  </ProtectedRoute>
+                  (demoMode || user) ? <ProfilePage /> : <Navigate to="/" replace />
                 } />
 
                 <Route path="/threads" element={
-                  <ProtectedRoute>
-                    <ThreadsPage />
-                  </ProtectedRoute>
+                  (demoMode || user) ? <ThreadsPage /> : <Navigate to="/" replace />
                 } />
 
                 <Route path="/vibes" element={
-                  <ProtectedRoute>
-                    <VibesPage />
-                  </ProtectedRoute>
+                  (demoMode || user) ? <VibesPage /> : <Navigate to="/" replace />
                 } />
 
                 {/* Public Support and Documentation */}

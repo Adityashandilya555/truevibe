@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaGoogle, FaSpinner } from 'react-icons/fa';
@@ -9,7 +8,7 @@ import useAuthStore from '../../store/authStore';
  * Modern Gmail OAuth login component for TrueVibe
  * Features gradient design, smooth animations, and social proof
  */
-const LoginForm = () => {
+const LoginForm = ({ onEnterDemo }) => {
   const { signInWithGmail, isLoading, error, clearAuth } = useAuthStore();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -24,7 +23,7 @@ const LoginForm = () => {
     try {
       console.log('Starting Gmail login...');
       const result = await signInWithGmail();
-      
+
       if (result.error) {
         console.error('Gmail login failed:', result.error);
         // Handle error - it should be shown via the store's error state
@@ -95,24 +94,33 @@ const LoginForm = () => {
           )}
 
           {/* Gmail OAuth Button */}
-          <motion.button
-            onClick={handleGmailLogin}
-            disabled={isLoading}
-            onHoverStart={() => setIsHovered(true)}
-            onHoverEnd={() => setIsHovered(false)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full bg-white hover:bg-gray-50 text-gray-900 font-semibold py-4 px-6 rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? (
-              <FaSpinner className="animate-spin text-xl" />
-            ) : (
-              <FaGoogle className="text-xl" />
-            )}
-            <span className="text-lg">
-              {isLoading ? 'Connecting...' : 'Continue with Gmail'}
-            </span>
-          </motion.button>
+          <div className="space-y-4">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleGmailLogin}
+                      disabled={isLoading}
+                      className="w-full flex items-center justify-center gap-3 bg-white text-gray-900 px-6 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                    >
+                      {isLoading ? (
+                        <FaSpinner className="animate-spin text-xl" />
+                      ) : (
+                        <>
+                          <FaGoogle className="text-xl" />
+                          Continue with Gmail
+                        </>
+                      )}
+                    </motion.button>
+
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={onEnterDemo}
+                      className="w-full flex items-center justify-center gap-3 bg-gray-700 text-white px-6 py-3 rounded-xl font-medium hover:bg-gray-600 transition-colors border border-gray-600"
+                    >
+                      🚀 Try Demo Mode
+                    </motion.button>
+                  </div>
 
           {/* Privacy Notice */}
           <p className="text-xs text-blue-200 text-center mt-4 leading-relaxed">
