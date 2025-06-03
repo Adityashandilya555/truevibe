@@ -1,7 +1,11 @@
 
-import React, { useState } from 'react';
+<old_str>The code will be updated to include navigation components in the ThreadsPage.
+```</old_str>
+<new_str>import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, MessageSquare, Heart, Share, TrendingUp, Clock, Sparkles } from 'lucide-react';
+import TopBar from '../components/navigation/TopBar';
+import BottomTabs from '../components/navigation/BottomTabs';
 
 const ThreadsPage = () => {
   const [selectedFilter, setSelectedFilter] = useState('trending');
@@ -58,7 +62,9 @@ const ThreadsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <TopBar />
+      
+      <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -154,13 +160,15 @@ const ThreadsPage = () => {
           animate={{ opacity: 1, scale: 1 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="fixed bottom-24 right-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-full shadow-lg hover:from-purple-700 hover:to-blue-700 transition-all"
+          className="fixed bottom-24 right-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-full shadow-lg hover:from-purple-700 hover:to-blue-700 transition-all z-50"
         >
           <Plus size={24} />
         </motion.button>
       </div>
+
+      <BottomTabs />
     </div>
   );
 };
 
-export default ThreadsPage;
+export default ThreadsPage;</new_str>
