@@ -1,336 +1,343 @@
 
-import React, { useState, useRef } from 'react';
-import { Camera, Mic, Music, Globe, Lock, X, RotateCcw, Check } from 'lucide-react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import EmotionDetectionEngine from '../../services/emotion/emotionDetectionEngine';
+import { 
+  Camera, 
+  Mic, 
+  Palette, 
+  Sparkles, 
+  Play, 
+  Pause, 
+  X,
+  Check,
+  RotateCcw
+} from 'lucide-react';
 
-const PRIVACY_OPTIONS = [
-  { value: 'public', icon: Globe, label: 'Public', description: 'Everyone can see' },
-  { value: 'friends', icon: Lock, label: 'Friends Only', description: 'Only friends can see' }
-];
-
-export default function DailyVibesCreator({ onVibeCreated, onCancel }) {
-  const [step, setStep] = useState('capture'); // capture, preview, post
-  const [captureMode, setCaptureMode] = useState('photo'); // photo, text, audio
-  const [content, setContent] = useState('');
-  const [capturedMedia, setCapturedMedia] = useState(null);
-  const [privacy, setPrivacy] = useState('public');
-  const [emotion, setEmotion] = useState(null);
+const DailyVibesCreator = ({ onSubmit, onClose }) => {
+  const [mode, setMode] = useState('mood'); // mood, photo, voice, color
+  const [moodData, setMoodData] = useState({
+    emotion: '',
+    intensity: 50,
+    description: ''
+  });
   const [isRecording, setIsRecording] = useState(false);
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-  const emotionEngine = new EmotionDetectionEngine();
+  const [recordedAudio, setRecordedAudio] = useState(null);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [selectedColor, setSelectedColor] = useState('#4F46E5');
 
-  // Initialize camera
-  React.useEffect(() => {
-    if (captureMode === 'photo') {
-      initializeCamera();
-    }
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [captureMode]);
+  const emotions = [
+    { key: 'joyful', label: 'Joyful', color: 'bg-yellow-400', emoji: '😊' },
+    { key: 'peaceful', label: 'Peaceful', color: 'bg-green-400', emoji: '😌' },
+    { key: 'energetic', label: 'Energetic', color: 'bg-orange-400', emoji: '⚡' },
+    { key: 'contemplative', label: 'Contemplative', color: 'bg-purple-400', emoji: '🤔' },
+    { key: 'grateful', label: 'Grateful', color: 'bg-pink-400', emoji: '🙏' },
+    { key: 'adventurous', label: 'Adventurous', color: 'bg-blue-400', emoji: '🌟' },
+    { key: 'creative', label: 'Creative', color: 'bg-indigo-400', emoji: '🎨' },
+    { key: 'determined', label: 'Determined', color: 'bg-red-400', emoji: '💪' }
+  ];
 
-  const initializeCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' },
-        audio: false
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      streamRef.current = stream;
-    } catch (error) {
-      console.error('Error accessing camera:', error);
+  const colorPalettes = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+  ];
+
+  const handleMoodSelect = (emotion) => {
+    setMoodData(prev => ({ ...prev, emotion }));
+  };
+
+  const handlePhotoSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setSelectedPhoto({ file, url });
     }
   };
 
-  const capturePhoto = () => {
-    if (videoRef.current) {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(videoRef.current, 0, 0);
-      const dataUrl = canvas.toDataURL('image/jpeg');
-      setCapturedMedia(dataUrl);
-      setStep('preview');
+  const toggleRecording = () => {
+    if (isRecording) {
+      // Stop recording
+      setIsRecording(false);
+      // Simulate recorded audio
+      setRecordedAudio({ duration: 30, url: 'demo-audio' });
+    } else {
+      // Start recording
+      setIsRecording(true);
     }
   };
 
-  const handleTextChange = (text) => {
-    setContent(text);
-    if (text.trim()) {
-      const emotionAnalysis = emotionEngine.analyzeEmotion(text);
-      setEmotion(emotionAnalysis);
-    }
-  };
-
-  const handlePost = () => {
+  const handleSubmit = () => {
     const vibeData = {
-      id: `vibe_${Date.now()}`,
-      content: content || '',
-      media_url: capturedMedia,
-      media_type: captureMode,
-      privacy,
-      emotion: emotion?.primary || 'neutral',
-      emotion_confidence: emotion?.confidence || 0.5,
-      created_at: new Date().toISOString(),
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      mode,
+      timestamp: new Date().toISOString(),
+      data: mode === 'mood' ? moodData : 
+            mode === 'photo' ? selectedPhoto :
+            mode === 'voice' ? recordedAudio :
+            mode === 'color' ? { color: selectedColor } : null
     };
 
-    // Save to localStorage for demo
-    const existingVibes = JSON.parse(localStorage.getItem('truevibe_daily_vibes') || '[]');
-    existingVibes.unshift(vibeData);
-    localStorage.setItem('truevibe_daily_vibes', JSON.stringify(existingVibes.slice(0, 10)));
-
-    onVibeCreated(vibeData);
+    if (onSubmit) {
+      onSubmit(vibeData);
+    }
+    
+    console.log('Daily vibe submitted:', vibeData);
   };
 
-  const retake = () => {
-    setCapturedMedia(null);
-    setContent('');
-    setEmotion(null);
-    setStep('capture');
+  const isComplete = () => {
+    switch (mode) {
+      case 'mood':
+        return moodData.emotion && moodData.description;
+      case 'photo':
+        return selectedPhoto;
+      case 'voice':
+        return recordedAudio;
+      case 'color':
+        return selectedColor;
+      default:
+        return false;
+    }
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className="bg-gray-800 rounded-2xl overflow-hidden shadow-2xl max-w-md w-full mx-auto"
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-700">
-        <button
-          onClick={onCancel}
-          className="p-2 hover:bg-gray-700 rounded-full transition-colors"
-        >
-          <X size={20} className="text-gray-400" />
-        </button>
-        <h2 className="font-semibold text-white">Daily Vibe</h2>
-        {step === 'preview' && (
+      <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-2">
+            <Sparkles className="w-6 h-6 text-purple-400" />
+            <h2 className="text-xl font-bold text-white">Daily Vibe</h2>
+          </div>
           <button
-            onClick={handlePost}
-            disabled={!capturedMedia && !content.trim()}
-            className="bg-cyan-400 text-gray-900 px-4 py-2 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={onClose}
+            className="text-gray-400 hover:text-white"
           >
-            Share
-          </button>
-        )}
-        {step === 'capture' && (
-          <div className="w-16"></div> // Spacer
-        )}
-      </div>
-
-      {/* Capture Mode Selector */}
-      {step === 'capture' && (
-        <div className="flex border-b border-gray-700">
-          <button
-            onClick={() => setCaptureMode('photo')}
-            className={`flex-1 py-3 text-center transition-colors ${
-              captureMode === 'photo' ? 'bg-gray-700 text-cyan-400' : 'text-gray-400'
-            }`}
-          >
-            <Camera size={20} className="mx-auto mb-1" />
-            <span className="text-xs">Photo</span>
-          </button>
-          <button
-            onClick={() => setCaptureMode('text')}
-            className={`flex-1 py-3 text-center transition-colors ${
-              captureMode === 'text' ? 'bg-gray-700 text-cyan-400' : 'text-gray-400'
-            }`}
-          >
-            <span className="text-lg mb-1 block">💭</span>
-            <span className="text-xs">Text</span>
-          </button>
-          <button
-            onClick={() => setCaptureMode('audio')}
-            className={`flex-1 py-3 text-center transition-colors ${
-              captureMode === 'audio' ? 'bg-gray-700 text-cyan-400' : 'text-gray-400'
-            }`}
-          >
-            <Mic size={20} className="mx-auto mb-1" />
-            <span className="text-xs">Audio</span>
+            <X size={24} />
           </button>
         </div>
-      )}
 
-      {/* Content Area */}
-      <div className="relative">
-        {step === 'capture' && (
-          <>
-            {/* Photo Capture */}
-            {captureMode === 'photo' && (
-              <div className="relative aspect-square bg-gray-900">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={capturePhoto}
-                    className="w-16 h-16 bg-white rounded-full border-4 border-gray-300 shadow-lg"
+        {/* Mode Selection */}
+        <div className="grid grid-cols-4 gap-2 mb-6">
+          {[
+            { key: 'mood', icon: Sparkles, label: 'Mood' },
+            { key: 'photo', icon: Camera, label: 'Photo' },
+            { key: 'voice', icon: Mic, label: 'Voice' },
+            { key: 'color', icon: Palette, label: 'Color' }
+          ].map(({ key, icon: Icon, label }) => (
+            <button
+              key={key}
+              onClick={() => setMode(key)}
+              className={`p-3 rounded-lg flex flex-col items-center space-y-1 transition-colors ${
+                mode === key
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              <Icon size={20} />
+              <span className="text-xs">{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Content based on selected mode */}
+        <AnimatePresence mode="wait">
+          {mode === 'mood' && (
+            <motion.div
+              key="mood"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              {/* Emotion Selection */}
+              <div>
+                <h3 className="text-white font-semibold mb-3">How are you feeling?</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {emotions.map(emotion => (
+                    <button
+                      key={emotion.key}
+                      onClick={() => handleMoodSelect(emotion.key)}
+                      className={`p-3 rounded-lg border-2 transition-colors ${
+                        moodData.emotion === emotion.key
+                          ? 'border-purple-500 bg-purple-500/20'
+                          : 'border-gray-600 hover:border-gray-500'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <span className="text-2xl">{emotion.emoji}</span>
+                        <span className="text-white text-sm">{emotion.label}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Intensity Slider */}
+              {moodData.emotion && (
+                <div>
+                  <h3 className="text-white font-semibold mb-3">
+                    Intensity: {moodData.intensity}%
+                  </h3>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={moodData.intensity}
+                    onChange={(e) => setMoodData(prev => ({ ...prev, intensity: parseInt(e.target.value) }))}
+                    className="w-full"
                   />
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Text Capture */}
-            {captureMode === 'text' && (
-              <div className="p-6">
+              {/* Description */}
+              <div>
+                <h3 className="text-white font-semibold mb-3">Tell us more...</h3>
                 <textarea
-                  value={content}
-                  onChange={(e) => handleTextChange(e.target.value)}
-                  placeholder="What's your vibe right now? ✨"
-                  className="w-full h-40 bg-gray-700 border border-gray-600 rounded-lg p-4 text-white placeholder-gray-400 resize-none focus:border-cyan-400 focus:outline-none"
-                  maxLength={280}
+                  value={moodData.description}
+                  onChange={(e) => setMoodData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="What's making you feel this way?"
+                  className="w-full bg-gray-700 text-white p-3 rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none resize-none"
+                  rows={3}
                 />
-                <div className="flex justify-between items-center mt-3">
-                  <span className="text-sm text-gray-400">
-                    {content.length}/280
-                  </span>
-                  {emotion && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-400">Detected:</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getEmotionStyles(emotion.primary)}`}>
-                        {emotion.primary}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                {content.trim() && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setStep('preview')}
-                    className="w-full mt-4 bg-cyan-400 text-gray-900 py-3 rounded-lg font-semibold"
-                  >
-                    Continue
-                  </motion.button>
-                )}
               </div>
-            )}
+            </motion.div>
+          )}
 
-            {/* Audio Capture */}
-            {captureMode === 'audio' && (
-              <div className="p-6 text-center">
-                <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Mic size={32} className={isRecording ? 'text-red-400' : 'text-gray-400'} />
+          {mode === 'photo' && (
+            <motion.div
+              key="photo"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-4"
+            >
+              <h3 className="text-white font-semibold">Capture your vibe</h3>
+              
+              {selectedPhoto ? (
+                <div className="space-y-4">
+                  <img
+                    src={selectedPhoto.url}
+                    alt="Selected"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <button
+                    onClick={() => setSelectedPhoto(null)}
+                    className="w-full bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                  >
+                    <RotateCcw size={16} className="inline mr-2" />
+                    Choose Different Photo
+                  </button>
                 </div>
+              ) : (
+                <label className="block">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoSelect}
+                    className="hidden"
+                  />
+                  <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-purple-500 transition-colors cursor-pointer">
+                    <Camera size={48} className="mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-400">Click to select a photo</p>
+                  </div>
+                </label>
+              )}
+            </motion.div>
+          )}
+
+          {mode === 'voice' && (
+            <motion.div
+              key="voice"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <h3 className="text-white font-semibold text-center">Record your vibe</h3>
+              
+              <div className="flex flex-col items-center space-y-4">
                 <button
-                  onClick={() => setIsRecording(!isRecording)}
-                  className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                    isRecording 
-                      ? 'bg-red-500 text-white hover:bg-red-600' 
-                      : 'bg-cyan-400 text-gray-900 hover:bg-cyan-300'
+                  onClick={toggleRecording}
+                  className={`w-20 h-20 rounded-full flex items-center justify-center transition-colors ${
+                    isRecording
+                      ? 'bg-red-500 hover:bg-red-600'
+                      : 'bg-purple-600 hover:bg-purple-700'
                   }`}
                 >
-                  {isRecording ? 'Stop Recording' : 'Start Recording'}
+                  {isRecording ? <Pause size={32} /> : <Mic size={32} />}
                 </button>
-                <p className="text-gray-400 text-sm mt-4">
-                  Record your authentic voice and feelings
+                
+                <p className="text-gray-400 text-center">
+                  {isRecording 
+                    ? 'Recording... tap to stop'
+                    : recordedAudio 
+                      ? 'Recording complete'
+                      : 'Tap to start recording'
+                  }
                 </p>
-              </div>
-            )}
-          </>
-        )}
 
-        {/* Preview Step */}
-        {step === 'preview' && (
-          <div className="p-6">
-            {capturedMedia && (
-              <div className="mb-4">
-                <img
-                  src={capturedMedia}
-                  alt="Captured vibe"
-                  className="w-full rounded-lg"
-                />
-              </div>
-            )}
-            
-            {content && (
-              <div className="bg-gray-700 rounded-lg p-4 mb-4">
-                <p className="text-white">{content}</p>
-                {emotion && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getEmotionStyles(emotion.primary)}`}>
-                      {emotion.primary}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {Math.round(emotion.confidence * 100)}% confidence
-                    </span>
+                {recordedAudio && (
+                  <div className="w-full bg-gray-700 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white">Voice note recorded</span>
+                      <span className="text-gray-400">{recordedAudio.duration}s</span>
+                    </div>
                   </div>
                 )}
               </div>
-            )}
+            </motion.div>
+          )}
 
-            {/* Privacy Settings */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Privacy
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {PRIVACY_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setPrivacy(option.value)}
-                    className={`p-3 rounded-lg border transition-colors ${
-                      privacy === option.value
-                        ? 'bg-cyan-400/20 border-cyan-400 text-cyan-400'
-                        : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    <option.icon size={20} className="mx-auto mb-1" />
-                    <div className="text-sm font-medium">{option.label}</div>
-                    <div className="text-xs opacity-70">{option.description}</div>
-                  </button>
-                ))}
+          {mode === 'color' && (
+            <motion.div
+              key="color"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <h3 className="text-white font-semibold text-center">Pick your vibe color</h3>
+              
+              <div className="space-y-4">
+                <div 
+                  className="w-full h-24 rounded-lg border-4 border-white"
+                  style={{ backgroundColor: selectedColor }}
+                />
+                
+                <div className="grid grid-cols-5 gap-3">
+                  {colorPalettes.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`w-12 h-12 rounded-lg border-2 transition-transform ${
+                        selectedColor === color
+                          ? 'border-white scale-110'
+                          : 'border-gray-600 hover:scale-105'
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={retake}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                <RotateCcw size={16} />
-                Retake
-              </button>
-              <button
-                onClick={handlePost}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-cyan-400 text-gray-900 rounded-lg hover:bg-cyan-300 transition-colors font-semibold"
-              >
-                <Check size={16} />
-                Share Vibe
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Submit Button */}
+        <button
+          onClick={handleSubmit}
+          disabled={!isComplete()}
+          className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold mt-6 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+        >
+          <Check size={20} />
+          <span>Share Your Vibe</span>
+        </button>
       </div>
     </motion.div>
   );
-}
+};
 
-function getEmotionStyles(emotion) {
-  const styles = {
-    joy: 'bg-yellow-400/20 text-yellow-400',
-    trust: 'bg-cyan-400/20 text-cyan-400',
-    fear: 'bg-purple-400/20 text-purple-400',
-    surprise: 'bg-pink-400/20 text-pink-400',
-    sadness: 'bg-blue-400/20 text-blue-400',
-    disgust: 'bg-green-400/20 text-green-400',
-    anger: 'bg-red-400/20 text-red-400',
-    anticipation: 'bg-orange-400/20 text-orange-400'
-  };
-  return styles[emotion] || styles.joy;
-}
+export default DailyVibesCreator;

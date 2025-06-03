@@ -1,84 +1,107 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { MessageCircle, Users, TrendingUp, Heart } from 'lucide-react';
+import ProfileHeader from '../components/profile/ProfileHeader';
+import StoriesCarousel from '../components/profile/StoriesCarousel';
+import ThreadComposer from '../components/threads/ThreadComposer';
+import ThreadFeed from '../components/threads/ThreadFeed';
+import useAuthStore from '../store/authStore';
+import { Sparkles, TrendingUp, Users } from 'lucide-react';
 
 const HomePage = () => {
+  const { user, profile } = useAuthStore();
+
+  const handleThreadSubmit = async (threadData) => {
+    try {
+      console.log('Submitting thread:', threadData);
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Show success message
+      console.log('Thread posted successfully!', threadData);
+
+      // TODO: Add to thread feed or refresh feed
+    } catch (error) {
+      console.error('Error submitting thread:', error);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Hero Section */}
+    <div className="min-h-screen bg-gray-900">
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        {/* Welcome Message */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-center py-4"
         >
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-4">
+          <h1 className="text-2xl font-bold text-white mb-2">
             Welcome to TrueVibe
           </h1>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-            Connect authentically through emotion-aware interactions. Share your true feelings and build meaningful connections.
+          <p className="text-gray-400">
+            Share your authentic emotions and connect with others
           </p>
         </motion.div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-          {[
-            { icon: MessageCircle, label: 'Threads', value: '1.2K', color: 'text-cyan-400' },
-            { icon: Users, label: 'Members', value: '850', color: 'text-blue-400' },
-            { icon: TrendingUp, label: 'Engagement', value: '94%', color: 'text-green-400' },
-            { icon: Heart, label: 'Emotions', value: '8', color: 'text-red-400' }
-          ].map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-gray-800 rounded-lg p-6 text-center"
-            >
-              <stat.icon className={`w-8 h-8 ${stat.color} mx-auto mb-2`} />
-              <div className="text-2xl font-bold text-white">{stat.value}</div>
-              <div className="text-gray-400 text-sm">{stat.label}</div>
-            </motion.div>
-          ))}
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-3 gap-4 mb-6"
+        >
+          <div className="bg-gray-800 rounded-lg p-4 text-center border border-gray-700">
+            <TrendingUp className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+            <div className="text-xl font-bold text-white">127</div>
+            <div className="text-xs text-gray-400">Trending</div>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4 text-center border border-gray-700">
+            <Users className="w-6 h-6 text-green-400 mx-auto mb-2" />
+            <div className="text-xl font-bold text-white">2.1k</div>
+            <div className="text-xs text-gray-400">Active</div>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4 text-center border border-gray-700">
+            <Sparkles className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+            <div className="text-xl font-bold text-white">89%</div>
+            <div className="text-xs text-gray-400">Joy</div>
+          </div>
+        </motion.div>
 
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-gray-800 rounded-lg p-6"
-          >
-            <h3 className="text-xl font-semibold mb-4">Start Connecting</h3>
-            <p className="text-gray-400 mb-4">
-              Share your thoughts and emotions with our community
-            </p>
-            <Link
-              to="/threads"
-              className="inline-block bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-lg transition-colors"
-            >
-              View Threads
-            </Link>
-          </motion.div>
+        {/* Profile Header */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <ProfileHeader user={user} profile={profile} />
+        </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-gray-800 rounded-lg p-6"
-          >
-            <h3 className="text-xl font-semibold mb-4">Explore Emotions</h3>
-            <p className="text-gray-400 mb-4">
-              Discover trending emotions and vibes in our community
-            </p>
-            <Link
-              to="/vibes"
-              className="inline-block bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors"
-            >
-              Explore Vibes
-            </Link>
-          </motion.div>
-        </div>
+        {/* Stories Carousel */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <StoriesCarousel />
+        </motion.div>
+
+        {/* Thread Composer */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <ThreadComposer onSubmit={handleThreadSubmit} />
+        </motion.div>
+
+        {/* Thread Feed */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <ThreadFeed />
+        </motion.div>
       </div>
     </div>
   );
