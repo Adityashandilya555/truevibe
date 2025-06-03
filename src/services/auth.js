@@ -12,16 +12,15 @@ export const authService = {
    */
   signInWithGmail: async () => {
     try {
-      // Get the current URL and ensure it's using the correct protocol
-      const currentUrl = window.location.origin;
-      const redirectUrl = `${currentUrl}/auth/callback`;
+      // Use the Supabase callback URL that matches Google Console configuration
+      const redirectUrl = 'https://gfzuisdpkdshzqxoissu.supabase.co/auth/v1/callback';
       
       console.log('Initiating OAuth with redirect URL:', redirectUrl);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectUrl,
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'select_account',
