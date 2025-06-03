@@ -4,11 +4,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, AlertCircle, Loader2, Hash, Image, X, File, Camera, Maximize2 } from 'lucide-react';
 import { analyzeEmotion, getEmotionColor, getEmotionBorder } from '../../services/emotion/vaderEnhanced';
 import { supabase } from '../../services/supabase';
-
 import useAuthStore from '../../store/authStore';
-import useAppStore from '../../store/appStore'; 
+import useAppStore from '../../store/appStore';
+
 // Generate UUID for demo mode
 const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
+// Generate UUID v4 for file uploads
+const uuidv4 = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0;
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -167,21 +176,17 @@ const ThreadComposer = () => {
 
       // Upload to Supabase with progress tracking
       const { data, error } = await supabase.storage
-        .from('thread_media')
+        .from('user-content')
         .upload(filePath, mediaFile, {
           cacheControl: '3600',
-          upsert: false,
-          onUploadProgress: (progress) => {
-            const percent = Math.round((progress.loaded / progress.total) * 100);
-            setUploadProgress(percent);
-          }
+          upsert: false
         });
 
       if (error) throw error;
 
       // Get public URL
       const { data: urlData } = supabase.storage
-        .from('thread_media')
+        .from('user-content')
         .getPublicUrl(filePath);
 
       return urlData.publicUrl;

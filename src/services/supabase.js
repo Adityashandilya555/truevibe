@@ -418,7 +418,7 @@ export const storageUtils = {
       const filePath = `${type}s/${fileName}`;
       
       const uploadResponse = await supabase.storage
-        .from('thread_media')
+        .from('user-content')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -429,7 +429,7 @@ export const storageUtils = {
       }
       
       const urlResponse = supabase.storage
-        .from('thread_media')
+        .from('user-content')
         .getPublicUrl(filePath);
         
       return { 
@@ -453,7 +453,7 @@ export const storageUtils = {
   deleteMedia: async function(filePath) {
     try {
       const response = await supabase.storage
-        .from('thread_media')
+        .from('user-content')
         .remove([filePath]);
         
       return { data: response.data, error: response.error };

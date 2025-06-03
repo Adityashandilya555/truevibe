@@ -265,7 +265,7 @@ const useThread = () => {
       if (composerMedia) {
         const fileName = `${user.id}/${Date.now()}-${composerMedia.name}`;
         const { data, error } = await supabase.storage
-          .from('thread-media')
+          .from('user-content')
           .upload(fileName, composerMedia, {
             cacheControl: '3600',
             upsert: false
@@ -275,7 +275,7 @@ const useThread = () => {
         
         // Get public URL
         const { data: urlData } = supabase.storage
-          .from('thread-media')
+          .from('user-content')
           .getPublicUrl(fileName);
         
         mediaUrl = urlData.publicUrl;
